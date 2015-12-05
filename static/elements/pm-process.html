@@ -1,0 +1,42 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+
+<dom-module id="pm-process" attributes="process"> 
+    <template>
+        <style>
+        .heading {
+            padding: 10px 15px;
+            margin-top: 20px;
+            background-color: #f3f3f3;
+            border: 1px solid #dedede;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+        }
+        pre {
+            font-size: 10px;
+        }
+        .stderr {
+            color: red;
+        }
+        </style>
+        <div>
+            <p class="heading" on-click="toggle"><span>{{process.name}}</span> <span>{{process.pid}}</span></p>
+            <iron-collapse id="collapse">
+                <pre class="stdout">{{process.stdout}}</pre>
+                <pre class="stderr">{{process.stderr}}</pre>
+            </iron-collapse>
+        </div>
+    </template>
+    <script>
+    Polymer({
+        is: "pm-process",
+        toggle: function () {
+            this.$.collapse.toggle();
+        }
+    });
+    </script>
+</dom-module>

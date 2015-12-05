@@ -1,0 +1,23 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="pm-process.html">
+
+<dom-module id="pm-process-list">
+    <template>
+        <iron-ajax auto url="/process/list" handle-as="json" last-response="{{processes}}"></iron-ajax>
+        <template is="dom-repeat" items="[[processes]]" as="process">
+            <pm-process process="[[process]]"></pm-process>
+        </template>
+    </template>
+    <script>
+        Polymer({
+            is: "pm-process-list",
+            ready: function () {
+                var ajax = this.$$('iron-ajax');
+                setInterval(function () {
+                    ajax.generateRequest()
+                }, 10000);
+            }
+        });
+    </script>
+</dom-module>

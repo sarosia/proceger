@@ -1,0 +1,36 @@
+{
+  "name": "proceger",
+  "version": "1.0.0",
+  "description": "A process manager with web interface",
+  "main": "lib/app.js",
+  "scripts": {
+    "test": "mocha",
+    "lint": "eslint lib test"
+  },
+  "author": "https://github.com/sarosia",
+  "license": "MIT",
+  "engines": {
+    "node": ">=0.10"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sarosia/proceger.git"
+  },
+  "dependencies": {
+    "express": "^4.13.3",
+    "morgan": "^1.6.1",
+    "serve-static": "^1.10.0"
+  },
+  "devDependencies": {
+    "chai": "^3.4.1",
+    "chai-as-promised": "^5.1.0",
+    "eslint": "^1.6.0",
+    "install": "^0.4.0",
+    "mocha": "^2.3.4",
+    "npm": "^3.5.1"
+  }
+  "bugs": {
+    "url": "https://github.com/sarosia/proceger/issues"
+  },
+  "homepage": "https://github.com/sarosia/proceger#readme"
+}

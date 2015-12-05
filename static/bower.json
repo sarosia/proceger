@@ -1,0 +1,19 @@
+{
+  "name": "process-manager",
+  "version": "0.0.0",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.0.0",
+    "iron-ajax": "PolymerElements/iron-ajax#~1.0.3",
+    "iron-flex-layout": "PolymerElements/iron-flex-layout#~1.0.2",
+    "iron-list": "PolymerElements/iron-list#~1.0.0",
+    "iron-collapse": "PolymerElements/iron-collapse#~1.0.3"
+  }
+}
