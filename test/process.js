@@ -5,6 +5,8 @@ chai.use(chaiAsPromised);
 var expect = chai.expect;
 
 describe("Testing Process class", function () {
+    this.timeout(5000);
+
     it("echo hello", function () {
         var process = new Process({
             command: "echo",
