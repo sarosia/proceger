@@ -1,12 +1,14 @@
 {
   "name": "proceger",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A process manager with web interface",
   "main": "lib/app.js",
   "bin": {
     "proceger": "bin/proceger"
   },
   "scripts": {
+    "postinstall": "bower install",
+    "prestart": "bower install",
     "start": "bin/proceger",
     "test": "mocha",
     "lint": "eslint lib test"
@@ -21,6 +23,7 @@
     "url": "git+https://github.com/sarosia/proceger.git"
   },
   "dependencies": {
+    "bower": "^1.6.9",
     "express": "^4.13.3",
     "morgan": "^1.6.1",
     "serve-static": "^1.10.0"
