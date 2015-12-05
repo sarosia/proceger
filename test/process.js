@@ -15,8 +15,8 @@ describe("Testing Process class", function () {
 
     it("large output", function () {
         var process = new Process({
-            command: "dd",
-            args: [ "if=/dev/urandom", "of=/dev/stdout", "bs=1024", "count=2048" ]
+            command: "head",
+            args: [ "-c", "2048000", "/dev/zero" ]
         });
 
         return expect(process.getCode().then(function () {
