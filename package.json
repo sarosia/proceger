@@ -1,6 +1,6 @@
 {
   "name": "proceger",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A process manager with web interface",
   "main": "lib/app.js",
   "bin": {
