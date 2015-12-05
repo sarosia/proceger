@@ -7,6 +7,7 @@
     "proceger": "bin/proceger"
   },
   "scripts": {
+    "start": "bin/proceger",
     "test": "mocha",
     "lint": "eslint lib test"
   },
