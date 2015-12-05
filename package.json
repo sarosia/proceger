@@ -28,7 +28,7 @@
     "install": "^0.4.0",
     "mocha": "^2.3.4",
     "npm": "^3.5.1"
-  }
+  },
   "bugs": {
     "url": "https://github.com/sarosia/proceger/issues"
   },
