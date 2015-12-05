@@ -1,14 +1,14 @@
 {
   "name": "proceger",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A process manager with web interface",
   "main": "lib/app.js",
   "bin": {
     "proceger": "bin/proceger"
   },
   "scripts": {
-    "postinstall": "bower install",
-    "prestart": "bower install",
+    "postinstall": "bower install --allow-root",
+    "prestart": "bower install --allow-root",
     "start": "bin/proceger",
     "test": "mocha",
     "lint": "eslint lib test"
