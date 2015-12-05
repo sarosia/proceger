@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "A process manager with web interface",
   "main": "lib/app.js",
+  "bin": {
+    "proceger": "bin/proceger"
+  },
   "scripts": {
     "test": "mocha",
     "lint": "eslint lib test"
@@ -10,7 +13,7 @@
   "author": "https://github.com/sarosia",
   "license": "MIT",
   "engines": {
-    "node": ">=0.10"
+    "node": ">=0.12"
   },
   "repository": {
     "type": "git",
