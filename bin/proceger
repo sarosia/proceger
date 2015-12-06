@@ -8,5 +8,5 @@ var app = require("../lib/app.js");
 var http = require("http");
 
 http.createServer(app).listen(8001, function () {
-    console.log("Running HTTP proxy on 8001");
+    console.log("Running proceger on 8001");
 });
