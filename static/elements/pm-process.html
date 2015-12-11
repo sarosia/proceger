@@ -56,15 +56,15 @@
     <script>
     Polymer({
         is: "pm-process",
-        _toggleLogs: function () {
+        _toggleLogs: function (event) {
             var logs = this.$.logs;
             var iconButton = Polymer.dom(event).localTarget;
             iconButton.icon = logs.opened ? 'hardware:keyboard-arrow-down' : 'hardware:keyboard-arrow-up';
             logs.toggle();
         },
-        restart: function (evt) {
+        restart: function (event) {
             document.createElement("iron-request").send({ url: "/process/restart?id=" + this.process.id });
-            evt.cancelBubble = true;
+            event.cancelBubble = true;
         },
         tail: function (input) {
             var lines = input.split(/\n/);
