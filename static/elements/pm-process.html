@@ -1,20 +1,26 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-icons/hardware-icons.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-request.html">
 
 <dom-module id="pm-process" attributes="process"> 
     <template>
-        <style>
-        .heading {
-            padding: 10px 15px;
-            margin-top: 20px;
-            background-color: #f3f3f3;
-            border: 1px solid #dedede;
-            border-top-left-radius: 5px;
-            border-top-right-radius: 5px;
-            font-size: 18px;
-            cursor: pointer;
-            width: 100%;
-            text-align: left;
+        <style is="custom-style">
+        .flex-self-align {
+            @apply(--layout-horizontal);
+            @apply(--layout-justified);
+        }
+        .flex-self-align div {
+            @apply(--layout-flex);
+            @apply(--layout-self-center);
+        }
+        * {
+            font-size: 16px;
         }
         pre {
             font-size: 10px;
@@ -22,20 +28,42 @@
         .stderr {
             color: red;
         }
+        paper-card {
+            width: 100%;
+            padding: 10px;
+        }
         </style>
-        <div>
-            <p class="heading" on-click="toggle"><span>{{process.name}}</span> <span>{{process.pid}}</span></p>
-            <iron-collapse id="collapse">
+
+        <paper-card heading="Process: {{process.name}}">
+            <div class="flex-self-align">
+                <div>PID: {{process.pid}}</div>
+                <div>Code: {{process.code}}</div>
+                <paper-button raised on-tap="restart">Restart</paper-button>
+                <paper-icon-button
+                        icon="hardware:keyboard-arrow-down"
+                        title="Logs"
+                        on-tap="_toggleLogs">
+                </paper-icon-button>
+            </div>
+            <iron-collapse id="logs">
                 <pre class="stdout">{{process.stdout}}</pre>
                 <pre class="stderr">{{process.stderr}}</pre>
             </iron-collapse>
-        </div>
+            <iron-request id="xhr"></iron-request>
+        </paper-card>
     </template>
     <script>
     Polymer({
         is: "pm-process",
-        toggle: function () {
-            this.$.collapse.toggle();
+        _toggleLogs: function () {
+            var logs = this.$.logs;
+            var iconButton = Polymer.dom(event).localTarget;
+            iconButton.icon = logs.opened ? 'hardware:keyboard-arrow-down' : 'hardware:keyboard-arrow-up';
+            logs.toggle();
+        },
+        restart: function (evt) {
+            document.createElement("iron-request").send({ url: "/process/restart?id=0" });
+            evt.cancelBubble = true;
         }
     });
     </script>
