@@ -31,6 +31,7 @@
         paper-card {
             width: 100%;
             padding: 10px;
+            margin-bottom: 20px;
         }
         </style>
 
@@ -62,7 +63,7 @@
             logs.toggle();
         },
         restart: function (evt) {
-            document.createElement("iron-request").send({ url: "/process/restart?id=0" });
+            document.createElement("iron-request").send({ url: "/process/restart?id=" + this.process.id });
             evt.cancelBubble = true;
         },
         tail: function (input) {
