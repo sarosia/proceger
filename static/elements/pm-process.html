@@ -46,8 +46,8 @@
                 </paper-icon-button>
             </div>
             <iron-collapse id="logs">
-                <pre class="stdout">{{process.stdout}}</pre>
-                <pre class="stderr">{{process.stderr}}</pre>
+                <pre class="stdout">{{tail(process.stdout)}}</pre>
+                <pre class="stderr">{{tail(process.stderr)}}</pre>
             </iron-collapse>
             <iron-request id="xhr"></iron-request>
         </paper-card>
@@ -64,6 +64,10 @@
         restart: function (evt) {
             document.createElement("iron-request").send({ url: "/process/restart?id=0" });
             evt.cancelBubble = true;
+        },
+        tail: function (input) {
+            var lines = input.split(/\n/);
+            return lines.slice(-101).join("\n");
         }
     });
     </script>
