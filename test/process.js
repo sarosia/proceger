@@ -12,7 +12,7 @@ describe("Testing Process class", function () {
             command: "echo",
             args: [ "hello" ]
         });
-        return expect(process.getCode()).to.eventually.equals(0);
+        return expect(process.start()).to.eventually.equals(0);
     });
 
     it("large output", function () {
@@ -21,7 +21,7 @@ describe("Testing Process class", function () {
             args: [ "-c", "2048000", "/dev/zero" ]
         });
 
-        return expect(process.getCode().then(function () {
+        return expect(process.start().then(function () {
             return process.getStdout().length;
         })).to.eventually.equals(1024 * 1024);
     });
