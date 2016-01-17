@@ -1,6 +1,6 @@
 {
   "name": "proceger",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "A process manager with web interface",
   "main": "lib/app.js",
   "bin": {
@@ -9,7 +9,8 @@
   "scripts": {
     "start": "bin/proceger",
     "test": "mocha",
-    "lint": "eslint lib test"
+    "lint": "eslint lib test",
+    "build": "vulcanize static/main.html > static/index.html"
   },
   "author": "https://github.com/sarosia",
   "license": "MIT",
@@ -31,7 +32,8 @@
     "eslint": "^1.6.0",
     "install": "^0.4.0",
     "mocha": "^2.3.4",
-    "npm": "^3.5.1"
+    "npm": "^3.5.1",
+    "vulcanize": "^1.14.1"
   },
   "bugs": {
     "url": "https://github.com/sarosia/proceger/issues"
