@@ -1,6 +1,6 @@
 # Proceger
 
-[![Build Status][travis-image]][travis-url]
+[![Build Status][build-image]][build-url]
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
 
@@ -16,27 +16,29 @@ Proceger depends on [Node.js](http://nodejs.org/) and [npm](http://npmjs.org/).
 
 ## Usage
 
-You need to first create a .proceger.json in the user home directory with the following content.
+You need to first create a .procegerrc in the user home directory with the following content.
 
 ```json
 {
-    "processes": [
-        {
-            "name": "ls",
-            "command": "ls",
-            "args": [ "-ltr" ]
-        }
-    ]
+  "workspace": "/path/to/your/workspace",
+  "tasks": [
+    {
+      "name": "google-calendar-syncer",
+      "git": {
+        "url": "git@github.com:sarosia/google-calendar-syncer.git"
+      }
+    }
+  ]
 }
 ```
 
 Start the application by running the following command.
 
 ```sh
-$ proceger 
+$ proceger
 ```
 
-You can access the proceger webapp by browsing http://localhost:8001.
+You can access the proceger webapp by browsing http://localhost:8080.
 
 ## License
 
@@ -46,5 +48,5 @@ You can access the proceger webapp by browsing http://localhost:8001.
 [npm-url]: https://npmjs.org/package/proceger
 [downloads-image]: https://img.shields.io/npm/dm/proceger.svg
 [downloads-url]: https://npmjs.org/package/proceger
-[travis-image]: https://travis-ci.org/sarosia/proceger.svg?branch=master
-[travis-url]: https://travis-ci.org/sarosia/proceger
+[build-image]: https://github.com/sarosia/heapset/workflows/CI/badge.svg
+[build-url]: https://github.com/sarosia/heapset/actions
