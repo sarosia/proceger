@@ -5,10 +5,19 @@
     <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
     <link href='https://fonts.googleapis.com/css?family=Roboto+Mono' rel='stylesheet' type='text/css'>
     <link href='main.css' rel='stylesheet' type='text/css'>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/uikit.min.css" />
+    <script src="js/uikit.min.js"></script>
+    <script src="js/uikit-icons.min.js"></script>
     <script src="app.js"></script>
   </head>
   <body>
-    Hello, world!
-    <div id="tasks"></div>
+    <h1 class="uk-heading-bullet">Proceger</h1>
+    <div class="uk-container uk-container-center">
+      <ul id="tasks-tab" class="uk-tab" data-uk-tab="{connect:'#tasks-content'}">
+      </ul>
+      <ul id="tasks-content" class="uk-switcher uk-margin">
+      </ul>
+    </div>
   </body>
 </html>
