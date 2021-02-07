@@ -23,7 +23,7 @@ const $ = function(id, type, attributes = {}, children = []) {
   return elm;
 };
 
-$$ = function (type, attributes, children) {
+$$ = function(type, attributes, children) {
   return $(null, type, attributes, children);
 };
 
@@ -31,8 +31,8 @@ window.onload = async function() {
   const res = await fetch('/task/list');
   const tasks = await res.json();
   for (const task of tasks) {
-    $('tasks-tab', 'li', {}, [$$('a', {'href':''}, task.name)]);
-    const content = $('tasks-content', 'li', {}, [
+    $('tasks-tab', 'li', {}, [$$('a', {'href': ''}, task.name)]);
+    $('tasks-content', 'li', {}, [
       $$('div', {}, [
         $$('ul', {'class': 'uk-list'}, [
           $$('li', {}, `PID: ${task.pid}`),
@@ -44,7 +44,7 @@ window.onload = async function() {
       $$('ul', {
         'id': `task-${task.name}-logs-tab`,
         'class': 'uk-tab',
-        'data-uk-tab': `{connect:'#task-${task.name}-logs'}`
+        'data-uk-tab': `{connect:'#task-${task.name}-logs'}`,
       }),
       $$('ul', {
         'id': `task-${task.name}-logs`,
