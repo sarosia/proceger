@@ -1,0 +1,11 @@
+* {
+  font-family: "Roboto";
+  font-size: 25px;
+}
+
+.logs p {
+  font-family: "Roboto Mono";
+  font-size: 12px;
+  margin-block-start: 0;
+  margin-block-end: 0;
+}
