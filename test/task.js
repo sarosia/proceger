@@ -21,7 +21,10 @@ describe('Task', () => {
     let json = await task.toJson();
     json.should.deep.equal({
       'git': 'git@github.com:sarosia/repo1.git',
-      'logs': {},
+      'logs': {
+        'stdout.log': 'log1\nlog2\nlog3\n',
+        'stderr.log': 'log1\nlog2\nlog3\n',
+      },
       'name': 'repo1',
       'path': repo1Path,
       'pid': -1,
@@ -43,7 +46,10 @@ describe('Task', () => {
       delete json['startTime'];
       json.should.deep.equal({
         'git': 'git@github.com:sarosia/repo1.git',
-        'logs': {},
+        'logs': {
+          'stdout.log': 'log1\nlog2\nlog3\n',
+          'stderr.log': 'log1\nlog2\nlog3\n',
+        },
         'name': 'repo1',
         'path': repo1Path,
         'pid': -1,
