@@ -1,4 +1,3 @@
 /node_modules
-/repos
-*-audit.json
-*.log
+/*-audit.json
+/*.log
