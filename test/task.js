@@ -19,7 +19,7 @@ describe('Task', function() {
       getRevision: null,
       update: Promise.resolve(false),
     });
-    const task = new Task({name: 'repo1'}, git, 500);
+    const task = new Task({name: 'repo1'}, git, 1000);
     let json = await task.toJson();
     json.should.deep.equal({
       'git': 'git@github.com:sarosia/repo1.git',
