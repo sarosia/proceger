@@ -8,7 +8,6 @@ const Git = require('../lib/git');
 const sleep = require('util').promisify(setTimeout);
 
 describe('Task', function() {
-  this.timeout(60 * 1000);
   const workspace = path.join(__dirname, 'testdata');
   const repo1Path = path.join(workspace, 'repo1');
 
@@ -60,7 +59,7 @@ describe('Task', function() {
         'code': 'SIGTERM',
       });
     }
-  });
+  }).timeout(10 * 1000);
 
   it('restart', async () => {
     const git = sinon.createStubInstance(Git, {
@@ -88,7 +87,7 @@ describe('Task', function() {
     } finally {
       await task.stop();
     }
-  });
+  }).timeout(10 * 1000);
 
   it('pollUpdates', async () => {
     const git = sinon.createStubInstance(Git, {
@@ -117,5 +116,5 @@ describe('Task', function() {
     } finally {
       await task.stop();
     }
-  });
+  }).timeout(60 * 1000);
 });
