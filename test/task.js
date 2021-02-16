@@ -69,7 +69,7 @@ describe('Task', function() {
       getRevision: null,
       update: Promise.resolve(false),
     });
-    const task = new Task({name: 'repo1'}, git, 500);
+    const task = new Task({name: 'repo1'}, git, 1000);
     try {
       await task.start();
       let json = await task.toJson();
@@ -101,7 +101,7 @@ describe('Task', function() {
     git.update.onCall(1).resolves(false);
     git.update.onCall(2).resolves(true);
 
-    const task = new Task({name: 'repo1'}, git, 500);
+    const task = new Task({name: 'repo1'}, git, 1000);
     try {
       await task.start();
       json = await task.toJson();
