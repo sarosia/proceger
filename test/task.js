@@ -11,13 +11,17 @@ describe('Task', function() {
   const workspace = path.join(__dirname, 'testdata');
   const repo1Path = path.join(workspace, 'repo1');
 
-  it('start then stop', async () => {
-    const git = sinon.createStubInstance(Git, {
+  function createGitStub() {
+    return sinon.createStubInstance(Git, {
       getUrl: 'git@github.com:sarosia/repo1.git',
       getRepoPath: repo1Path,
       getRevision: null,
       update: Promise.resolve(false),
     });
+  }
+
+  it('start then stop', async () => {
+    const git = createGitStub();
     const task = new Task({name: 'repo1'}, git, 1000);
     let json = await task.toJson();
     json.should.deep.equal({
@@ -61,13 +65,42 @@ describe('Task', function() {
     }
   }).timeout(10 * 1000);
 
-  it('restart', async () => {
-    const git = sinon.createStubInstance(Git, {
-      getUrl: 'git@github.com:sarosia/repo1.git',
-      getRepoPath: repo1Path,
-      getRevision: null,
-      update: Promise.resolve(false),
+  it('stop', async () => {
+    const git = createGitStub();
+    const task = new Task({name: 'repo1'}, git, 1000);
+    await task.stop();
+    const json = await task.toJson();
+    json.should.deep.equal({
+      'git': 'git@github.com:sarosia/repo1.git',
+      'logs': {
+      'stdout.log': 'log1\nlog2\nlog3\n',
+      'stderr.log': 'log1\nlog2\nlog3\n',
+      },
+      'name': 'repo1',
+      'path': repo1Path,
+      'pid': -1,
+      'revision': null,
+      'status': 'IDLE',
+      'startTime': null,
+      'code': null,
     });
+  });
+
+  it('restart', async () => {
+    const git = createGitStub();
+    const task = new Task({name: 'repo1'}, git, 1000);
+    try {
+      await task.restart();
+      const json = await task.toJson();
+      json.startTime.should.not.equal(null);
+      json.pid.should.not.equal(-1);
+    } finally {
+      await task.stop();
+    }
+  }).timeout(10 * 1000);
+
+  it('start then restart', async () => {
+    const git = createGitStub();
     const task = new Task({name: 'repo1'}, git, 1000);
     try {
       await task.start();
@@ -90,12 +123,7 @@ describe('Task', function() {
   }).timeout(10 * 1000);
 
   it('pollUpdates', async () => {
-    const git = sinon.createStubInstance(Git, {
-      getUrl: 'git@github.com:sarosia/repo1.git',
-      getRepoPath: repo1Path,
-      getRevision: null,
-      update: Promise.resolve(false),
-    });
+    const git = createGitStub();
     git.update.onCall(0).resolves(false);
     git.update.onCall(1).resolves(false);
     git.update.onCall(2).resolves(true);
