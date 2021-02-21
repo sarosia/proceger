@@ -48,5 +48,5 @@ You can access the proceger webapp by browsing http://localhost:8080.
 [npm-url]: https://npmjs.org/package/proceger
 [downloads-image]: https://img.shields.io/npm/dm/proceger.svg
 [downloads-url]: https://npmjs.org/package/proceger
-[build-image]: https://github.com/sarosia/proceger/workflows/CI/badge.svg
+[build-image]: https://github.com/sarosia/proceger/workflows/Node.js%20CI/badge.svg
 [build-url]: https://github.com/sarosia/proceger/actions
