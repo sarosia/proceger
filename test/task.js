@@ -73,8 +73,8 @@ describe('Task', function() {
     json.should.deep.equal({
       'git': 'git@github.com:sarosia/repo1.git',
       'logs': {
-      'stdout.log': 'log1\nlog2\nlog3\n',
-      'stderr.log': 'log1\nlog2\nlog3\n',
+        'stdout.log': 'log1\nlog2\nlog3\n',
+        'stderr.log': 'log1\nlog2\nlog3\n',
       },
       'name': 'repo1',
       'path': repo1Path,

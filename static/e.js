@@ -25,9 +25,9 @@
  * append to the current node. If the children is a string, simply set the
  * node's innerHTML.
  *
- * @param {param}
+ * @return {HTMLElement}
  */
-const e = function() {
+const e = function(...args) {
   const getElement = function(param) {
     return document.getElementById(param);
   };
@@ -49,6 +49,7 @@ const e = function() {
     if (typeof children === 'string') {
       elm.innerHTML = children;
     } else if (children instanceof Array) {
+      elm.innerHTML = '';
       if (children.length > 0 && !(children[0] instanceof Array)) {
         children = [children];
       }
@@ -74,18 +75,20 @@ const e = function() {
   };
 
   let elm;
-  if (typeof arguments[0] === 'string' || arg instanceof String) {
-    elm = document.getElementById(arguments[0]);
-    if (arguments.length >= 2) {
-      setAttributes(elm, arguments[1]);
+  if (typeof args[0] === 'string' || args[0] instanceof String) {
+    elm = getElement(args[0]);
+    if (args.length >= 2) {
+      setAttributes(elm, args[1]);
     }
-    if (arguments.length >= 3) {
-      updateChildren(elm, arguments[2]);
+    if (args.length >= 3) {
+      updateChildren(elm, args[2]);
     }
-  } else if (typeof arguments[0] === Array) {
-    elm = buildElement(arguments[0]);
+  } else if (args[0] instanceof Array) {
+    elm = buildElement(args[0]);
   } else {
-    throw new Error(`Unsupported argument ${arguments}.`);
+    throw new Error(`Unsupported arguments ${args}.`);
   }
   return elm;
 };
+
+export {e as default};
