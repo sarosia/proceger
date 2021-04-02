@@ -1,0 +1,11 @@
+[Unit]
+Description=Proceger
+After=network.target
+
+[Service]
+User=proceger
+WorkingDirectory=/home/proceger/proceger-workspace
+ExecStart=/bin/bash -c '. /home/proceger/.nvm/nvm.sh && exec proceger'
+
+[Install]
+WantedBy=multi-user.target
