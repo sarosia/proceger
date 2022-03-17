@@ -26,7 +26,7 @@
     "glob-promise": "^3.4.0",
     "rc": "^1.2.8",
     "serve-static": "^1.14.1",
-    "simple-git": "^2.31.0",
+    "simple-git": "^3.3.0",
     "tree-kill": "^1.2.2",
     "uikit": "^3.6.16",
     "winston": "^3.3.3",
