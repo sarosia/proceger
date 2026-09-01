@@ -3,9 +3,13 @@ Description=Proceger
 After=network.target
 
 [Service]
+Type=simple
 User=proceger
+Group=proceger
 WorkingDirectory=/home/proceger/proceger-workspace
 ExecStart=/bin/bash -c '. /home/proceger/.nvm/nvm.sh && exec proceger'
+Environment="HOME=/home/proceger"
+Environment="GOOGLE_APPLICATION_CREDENTIALS=/home/proceger/.google.cred.json"
 
 [Install]
 WantedBy=multi-user.target
