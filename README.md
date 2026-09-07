@@ -21,6 +21,7 @@ You need to first create a .procegerrc in the user home directory with the follo
 ```json
 {
   "workspace": "/path/to/your/workspace",
+  "logDir": "/path/to/your/logs",
   "tasks": [
     {
       "name": "google-calendar-syncer",
