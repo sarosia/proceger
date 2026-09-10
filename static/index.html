@@ -1,21 +1,39 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
+    <meta charset="utf-8">
     <title>Proceger</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
-    <link href='https://fonts.googleapis.com/css?family=Roboto+Mono' rel='stylesheet' type='text/css'>
-    <link href='main.css' rel='stylesheet' type='text/css'>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,500" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="css/uikit.min.css" />
+    <link href="main.css" rel="stylesheet" type="text/css">
     <script src="js/uikit.min.js"></script>
     <script src="js/uikit-icons.min.js"></script>
     <script type="module" src="app.js"></script>
   </head>
   <body>
-    <h1 class="uk-heading-bullet">Proceger</h1>
-    <div class="uk-container uk-container-center">
-      <ul id="tasks-tab" class="uk-tab" data-uk-tab="{connect:'#tasks-content'}">
-      </ul>
+    <div class="uk-container uk-container-center app-container">
+      <header class="app-header uk-margin-bottom">
+        <div class="uk-flex uk-flex-between uk-flex-middle">
+          <div class="uk-flex uk-flex-middle">
+            <h1 class="uk-heading-bullet app-title uk-margin-remove">Proceger</h1>
+            <span id="header-status" class="uk-margin-small-left"></span>
+          </div>
+          <div>
+            <button id="refresh-btn" class="uk-button uk-button-default uk-button-small refresh-btn" title="Refresh">
+              <span uk-icon="icon: refresh; ratio: 0.85"></span>
+              <span class="uk-visible@s uk-margin-small-left">Refresh</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div class="tasks-tab-wrapper">
+        <ul id="tasks-tab" class="uk-tab" uk-tab="connect: #tasks-content">
+        </ul>
+      </div>
       <ul id="tasks-content" class="uk-switcher uk-margin">
       </ul>
     </div>

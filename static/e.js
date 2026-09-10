@@ -39,8 +39,10 @@ const e = function(...args) {
     for (const [key, value] of Object.entries(attributes)) {
       if (key.startsWith('on')) {
         elm.addEventListener(key.substr(2), value);
+      } else if (value !== undefined && value !== null && value !== false) {
+        elm.setAttribute(key, value === true ? '' : value);
       } else {
-        elm.setAttribute(key, value);
+        elm.removeAttribute(key);
       }
     }
   };

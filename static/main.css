@@ -1,10 +1,378 @@
 * {
-  font-family: "Roboto";
+  font-family: "Roboto", -apple-system, BlinkMacSystemFont, sans-serif;
+  box-sizing: border-box;
 }
 
-.logs p {
-  font-family: "Roboto Mono";
-  font-size: 12px;
-  margin-block-start: 0;
-  margin-block-end: 0;
+body {
+  background-color: #f8fafc;
+  color: #1e293b;
+  min-height: 100dvh;
+  margin: 0;
+  -webkit-text-size-adjust: 100%;
 }
+
+.app-container {
+  max-width: 1200px;
+  padding-left: 12px;
+  padding-right: 12px;
+  padding-bottom: 32px;
+}
+
+@media (min-width: 640px) {
+  .app-container {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+/* Header */
+.app-header {
+  padding-top: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.app-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+@media (min-width: 640px) {
+  .app-title {
+    font-size: 2rem;
+  }
+}
+
+.refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  min-width: 38px;
+  padding: 0 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.refresh-btn.loading [uk-icon] {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Scrollable Task Tabs */
+.tasks-tab-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  padding-bottom: 2px;
+  margin-bottom: 16px;
+}
+
+#tasks-tab {
+  display: flex;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  margin: 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+#tasks-tab > li {
+  flex-shrink: 0;
+}
+
+#tasks-tab > li > a {
+  padding: 10px 16px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  border-bottom: 2px solid transparent;
+}
+
+#tasks-tab > li.uk-active > a {
+  color: #0f172a;
+  border-bottom-color: #1e87f0;
+}
+
+/* Status Indicator Dot */
+.status-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.status-running {
+  background-color: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25);
+}
+
+.status-dot.status-stopped {
+  background-color: #ef4444;
+}
+
+.status-dot.status-starting,
+.status-dot.status-stopping {
+  background-color: #f59e0b;
+}
+
+.status-dot.status-idle {
+  background-color: #94a3b8;
+}
+
+/* Task Card */
+.task-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.task-info-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin: 0 0 16px 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 640px) {
+  .task-info-list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+}
+
+.task-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.task-info-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.task-info-value {
+  font-size: 13px;
+  color: #0f172a;
+  font-family: "Roboto Mono", monospace;
+  word-break: break-all;
+  overflow-wrap: anywhere;
+}
+
+.task-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+.task-status-badge.status-running {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.task-status-badge.status-stopped {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.task-status-badge.status-starting,
+.task-status-badge.status-stopping {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.task-status-badge.status-idle {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+/* Action Buttons */
+.task-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.task-btn {
+  min-height: 42px;
+  min-width: 100px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  flex: 1 1 auto;
+}
+
+@media (min-width: 640px) {
+  .task-btn {
+    flex: 0 0 auto;
+  }
+}
+
+/* Log Tabs */
+.log-tab-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  margin-top: 20px;
+  margin-bottom: 8px;
+}
+
+.log-tab {
+  display: flex;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  margin: 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.log-tab > li {
+  flex-shrink: 0;
+}
+
+.log-tab > li > a {
+  font-family: "Roboto Mono", monospace;
+  font-size: 12px;
+  padding: 8px 14px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  color: #64748b;
+}
+
+.log-tab > li.uk-active > a {
+  color: #0f172a;
+  font-weight: 600;
+  border-bottom-color: #0f172a;
+}
+
+/* Terminal Log Viewer */
+.logs-terminal {
+  background-color: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.logs-toolbar {
+  background-color: #1e293b;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #334155;
+}
+
+.logs-filename {
+  font-family: "Roboto Mono", monospace;
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logs-toolbar-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.terminal-btn {
+  background: transparent;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px 10px;
+  font-size: 11px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  font-family: "Roboto Mono", monospace;
+}
+
+.terminal-btn:hover,
+.terminal-btn:active {
+  color: #f8fafc;
+  background-color: #334155;
+}
+
+.logs-body {
+  padding: 12px;
+  max-height: 55vh;
+  min-height: 200px;
+  overflow-x: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  margin: 0;
+}
+
+.logs-body p {
+  font-family: "Roboto Mono", monospace;
+  font-size: 11.5px;
+  line-height: 1.55;
+  margin: 0;
+  color: #cbd5e1;
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-wrap: anywhere;
+}
+
+.logs-body p .log-time {
+  color: #64748b;
+  margin-right: 8px;
+}
+
+.logs-body p .log-msg {
+  color: #f1f5f9;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 16px;
+  color: #64748b;
+}
+
+.empty-state p {
+  margin: 8px 0 0 0;
+  font-size: 14px;
+}
+
