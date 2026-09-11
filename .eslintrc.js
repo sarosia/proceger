@@ -8,14 +8,12 @@ module.exports = {
   'extends': [
     'google',
   ],
+  'parser': '@babel/eslint-parser',
   'parserOptions': {
     'ecmaVersion': 12,
+    'requireConfigFile': false,
   },
   'rules': {
     'require-jsdoc': 0,
   },
-  "parser": "@babel/eslint-parser",
-  "parserOptions": {
-      "requireConfigFile": false
-  }
 };

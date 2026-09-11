@@ -18,9 +18,6 @@
       "name": "google-calendar-announcer",
       "git": {
         "url": "git@github.com:sarosia/google-calendar-announcer.git"
-      },
-      "env": {
-        "GOOGLE_APPLICATION_CREDENTIALS": "~/.google.cred.json"
       }
     }
   ]
