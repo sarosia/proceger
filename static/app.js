@@ -169,22 +169,55 @@ function formatLogLines(logs) {
  * Triggers a task process control action (stop/restart).
  * @param {string} taskName Task name.
  * @param {string} action Action ('stop' or 'restart').
- * @param {HTMLElement} buttonElement Triggering button.
  */
-async function handleTaskAction(taskName, action, buttonElement) {
+async function handleTaskAction(taskName, action) {
   if (actionInProgress) return;
   actionInProgress = true;
 
-  buttonElement.disabled = true;
-  buttonElement.innerText = action === 'stop' ? 'Stopping...' : 'Restarting...';
+  const stopBtn = document.getElementById(`task-stop-btn-${taskName}`);
+  const restartBtn = document.getElementById(`task-restart-btn-${taskName}`);
+  const stopText = document.getElementById(`task-stop-text-${taskName}`);
+  const restartText = document.getElementById(`task-restart-text-${taskName}`);
+  const statusBadge = document.getElementById(`task-status-badge-${taskName}`);
+  const statusDot = document.getElementById(`task-status-dot-${taskName}`);
+  const statusText = document.getElementById(`task-status-text-${taskName}`);
+
+  if (stopBtn) stopBtn.disabled = true;
+  if (restartBtn) restartBtn.disabled = true;
+
+  if (action === 'stop') {
+    if (stopText) stopText.textContent = 'Stopping...';
+    if (statusBadge) {
+      statusBadge.className = 'task-status-badge status-stopping';
+    }
+    if (statusDot) statusDot.className = 'status-dot status-stopping';
+    if (statusText) statusText.textContent = 'STOPPING';
+  } else {
+    const isStopped =
+        statusText && statusText.textContent.trim() === 'STOPPED';
+    if (restartText) {
+      restartText.textContent = isStopped ? 'Starting...' : 'Restarting...';
+    }
+    if (statusBadge) {
+      statusBadge.className = 'task-status-badge status-starting';
+    }
+    if (statusDot) statusDot.className = 'status-dot status-starting';
+    if (statusText) {
+      statusText.textContent = isStopped ? 'STARTING' : 'RESTARTING';
+    }
+  }
 
   try {
-    await fetch(`/task/${encodeURIComponent(taskName)}/${action}`);
+    const res = await fetch(`/task/${encodeURIComponent(taskName)}/${action}`);
+    if (res.status === 401) {
+      window.location.href = '/login';
+      return;
+    }
   } catch (err) {
     console.error(`Failed to ${action} task ${taskName}:`, err);
   } finally {
     actionInProgress = false;
-    await render(false);
+    await render(true);
     setTimeout(() => render(false), 800);
     setTimeout(() => render(false), 2000);
   }
@@ -507,19 +540,40 @@ async function render(forceScroll = false) {
         );
         if (stopBtn) {
           stopBtn.disabled = !isRunning || isBusy;
+          const stopText = document.getElementById(
+              `task-stop-text-${task.name}`,
+          );
+          if (!stopText) {
+            stopBtn.innerHTML =
+                '<span uk-icon="icon: ban; ratio: 0.85"></span>' +
+                `<span id="task-stop-text-${task.name}">Stop</span>`;
+            if (window.UIkit && window.UIkit.icon) {
+              window.UIkit.icon(stopBtn.querySelector('span[uk-icon]'));
+            }
+          } else {
+            stopText.textContent = 'Stop';
+          }
         }
         const restartBtn = document.getElementById(
             `task-restart-btn-${task.name}`,
         );
         if (restartBtn) {
           restartBtn.disabled = isBusy;
-        }
-        const restartText = document.getElementById(
-            `task-restart-text-${task.name}`,
-        );
-        if (restartText) {
-          restartText.textContent =
-              task.status === 'STOPPED' ? 'Start' : 'Restart';
+          const targetText = task.status === 'STOPPED' ? 'Start' : 'Restart';
+          const restartText = document.getElementById(
+              `task-restart-text-${task.name}`,
+          );
+          if (!restartText) {
+            restartBtn.innerHTML =
+                '<span uk-icon="icon: refresh; ratio: 0.85"></span>' +
+                `<span id="task-restart-text-${task.name}">` +
+                `${targetText}</span>`;
+            if (window.UIkit && window.UIkit.icon) {
+              window.UIkit.icon(restartBtn.querySelector('span[uk-icon]'));
+            }
+          } else {
+            restartText.textContent = targetText;
+          }
         }
       }
 
@@ -688,8 +742,8 @@ async function render(forceScroll = false) {
               'id': `task-stop-btn-${task.name}`,
               'class': 'uk-button uk-button-danger task-btn',
               'disabled': !isRunning || isBusy,
-              'onclick': (evt) => {
-                handleTaskAction(task.name, 'stop', evt.currentTarget);
+              'onclick': () => {
+                handleTaskAction(task.name, 'stop');
               },
             }, [
               el('span', {'uk-icon': 'icon: ban; ratio: 0.85'}),
@@ -699,8 +753,8 @@ async function render(forceScroll = false) {
               'id': `task-restart-btn-${task.name}`,
               'class': 'uk-button uk-button-primary task-btn',
               'disabled': isBusy,
-              'onclick': (evt) => {
-                handleTaskAction(task.name, 'restart', evt.currentTarget);
+              'onclick': () => {
+                handleTaskAction(task.name, 'restart');
               },
             }, [
               el('span', {'uk-icon': 'icon: refresh; ratio: 0.85'}),

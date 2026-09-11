@@ -145,4 +145,23 @@ describe('Task', function() {
       await task.stop();
     }
   }).timeout(60 * 1000);
+
+  it('runs command with configured environment and HOME', async () => {
+    const git = createGitStub();
+    const task = new Task({
+      name: 'repo1',
+      env: {
+        CUSTOM_VAR: 'custom_value',
+        EXPANDED_PATH: '~/test-dir',
+      },
+    }, git, 1000);
+    const exitCode = await task.runCommand(
+        'node -e "if (!process.env.HOME || ' +
+        'process.env.CUSTOM_VAR !== \'custom_value\' || ' +
+        '!process.env.EXPANDED_PATH.includes(\'test-dir\')) ' +
+        'process.exit(1);"',
+        true,
+    );
+    exitCode.should.equal(0);
+  });
 });
