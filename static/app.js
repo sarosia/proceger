@@ -243,6 +243,62 @@ async function copyLogText(logText, btn) {
 }
 
 /**
+ * Renders the user profile avatar button with dropdown for sign out.
+ * @param {Object} user User object from /auth/me.
+ */
+function renderUserProfile(user) {
+  const container = document.getElementById('user-profile');
+  if (!container) return;
+
+  const displayName = user.name || user.email || 'User';
+  const initial = (displayName || 'U').charAt(0).toUpperCase();
+  const avatarHtml = user.picture ?
+    `<img src="${escapeHtml(user.picture)}" alt="Profile" ` +
+    `class="user-avatar-img" />` :
+    `<div class="user-avatar-fallback">${escapeHtml(initial)}</div>`;
+
+  container.innerHTML = `
+    <div class="uk-inline">
+      <button class="user-avatar-btn" type="button" ` +
+        `aria-label="Account: ${escapeHtml(displayName)}" ` +
+        `title="${escapeHtml(displayName)} (${escapeHtml(user.email)})">
+        ${avatarHtml}
+      </button>
+      <div uk-dropdown="mode: click; pos: bottom-right; offset: 8" ` +
+        `class="user-dropdown-card">
+        <a href="/auth/logout" ` +
+          `class="uk-button uk-button-small uk-width-1-1 ` +
+          `user-dropdown-logout-btn">
+          <span uk-icon="icon: sign-out; ratio: 0.8" ` +
+            `class="uk-margin-small-right"></span>Sign Out
+        </a>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Loads current authenticated user profile from /auth/me.
+ */
+async function loadCurrentUser() {
+  try {
+    const res = await fetch('/auth/me');
+    if (res.status === 401) {
+      window.location.href = '/login';
+      return;
+    }
+    if (res.ok) {
+      const data = await res.json();
+      if (data.user) {
+        renderUserProfile(data.user);
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load current user:', err);
+  }
+}
+
+/**
  * Fetches tasks and renders the entire UI while preserving state.
  * @param {boolean} [forceScroll=false] Whether to scroll log to bottom.
  */
@@ -250,6 +306,10 @@ async function render(forceScroll = false) {
   let tasks = [];
   try {
     const res = await fetch('/task/list');
+    if (res.status === 401) {
+      window.location.href = '/login';
+      return;
+    }
     tasks = await res.json();
   } catch (err) {
     console.error('Failed to fetch tasks:', err);
@@ -489,6 +549,7 @@ async function render(forceScroll = false) {
 }
 
 window.onload = async function() {
+  await loadCurrentUser();
   await render(true);
 
   window.addEventListener('hashchange', () => {

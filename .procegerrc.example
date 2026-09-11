@@ -1,0 +1,24 @@
+{
+  "port": 9000,
+  "workspace": "/home/cmto/proceger-workspace",
+  "logDir": "~/.proceger/logs",
+  "auth": {
+    "enabled": true,
+    "clientId": "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+    "clientSecret": "YOUR_GOOGLE_CLIENT_SECRET",
+    "callbackUrl": "http://localhost:9000/auth/callback",
+    "sessionSecret": "replace-with-a-random-secret-key",
+    "sessionMaxAge": "7d",
+    "allowedEmails": [
+      "user@example.com"
+    ]
+  },
+  "tasks": [
+    {
+      "name": "google-calendar-announcer",
+      "git": {
+        "url": "git@github.com:sarosia/google-calendar-announcer.git"
+      }
+    }
+  ]
+}

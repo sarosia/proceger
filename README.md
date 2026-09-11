@@ -20,8 +20,20 @@ You need to first create a .procegerrc in the user home directory with the follo
 
 ```json
 {
+  "port": 8080,
   "workspace": "/path/to/your/workspace",
   "logDir": "/path/to/your/logs",
+  "auth": {
+    "enabled": true,
+    "clientId": "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+    "clientSecret": "YOUR_GOOGLE_CLIENT_SECRET",
+    "callbackUrl": "http://localhost:8080/auth/callback",
+    "sessionSecret": "replace-with-a-random-secret-key",
+    "sessionMaxAge": "7d",
+    "allowedEmails": [
+      "user@example.com"
+    ]
+  },
   "tasks": [
     {
       "name": "google-calendar-syncer",
