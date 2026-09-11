@@ -26,6 +26,8 @@ describe('Task', function() {
     let json = await task.toJson();
     json.should.deep.equal({
       'git': 'git@github.com:sarosia/repo1.git',
+      'command': 'npm start',
+      'env': {},
       'logs': {
         'stdout.log': 'log1\nlog2\nlog3\n',
         'stderr.log': 'log1\nlog2\nlog3\n',
@@ -51,6 +53,8 @@ describe('Task', function() {
       delete json['startTime'];
       json.should.deep.equal({
         'git': 'git@github.com:sarosia/repo1.git',
+        'command': 'npm start',
+        'env': {},
         'logs': {
           'stdout.log': 'log1\nlog2\nlog3\n',
           'stderr.log': 'log1\nlog2\nlog3\n',
@@ -72,6 +76,8 @@ describe('Task', function() {
     const json = await task.toJson();
     json.should.deep.equal({
       'git': 'git@github.com:sarosia/repo1.git',
+      'command': 'npm start',
+      'env': {},
       'logs': {
         'stdout.log': 'log1\nlog2\nlog3\n',
         'stderr.log': 'log1\nlog2\nlog3\n',

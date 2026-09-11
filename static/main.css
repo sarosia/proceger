@@ -460,3 +460,15 @@ body {
   font-size: 14px;
 }
 
+
+.task-btn-delete {
+  color: #dc2626 !important;
+  border-color: #fca5a5 !important;
+}
+
+.task-btn-delete:hover,
+.task-btn-delete:active {
+  color: #ffffff !important;
+  background-color: #dc2626 !important;
+  border-color: #dc2626 !important;
+}

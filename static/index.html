@@ -22,6 +22,10 @@
             <span id="header-status" class="uk-margin-small-left"></span>
           </div>
           <div class="uk-flex uk-flex-middle" style="gap: 10px;">
+            <button id="add-task-btn" class="uk-button uk-button-primary uk-button-small" title="Add Task">
+              <span uk-icon="icon: plus; ratio: 0.85"></span>
+              <span class="uk-margin-small-left">Add Task</span>
+            </button>
             <button id="refresh-btn" class="uk-button uk-button-default uk-button-small refresh-btn" title="Refresh">
               <span uk-icon="icon: refresh; ratio: 0.85"></span>
               <span class="uk-visible@s uk-margin-small-left">Refresh</span>
@@ -37,6 +41,54 @@
       </div>
       <ul id="tasks-content" class="uk-switcher uk-margin">
       </ul>
+    </div>
+
+    <!-- MODAL: ADD / EDIT TASK -->
+    <div id="modal-task" uk-modal>
+      <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical modal-custom-body" style="border-radius: 8px; max-width: 520px;">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <h3 class="uk-modal-title" id="modal-task-title" style="font-size: 1.25rem; font-weight: 600;">Add Task</h3>
+        <form id="form-task" class="uk-form-stacked">
+          <input type="hidden" id="task-is-edit" value="false">
+
+          <div class="uk-margin-small">
+            <label class="uk-form-label uk-text-bold" for="task-input-name">Task Name *</label>
+            <div class="uk-form-controls">
+              <input class="uk-input uk-form-small" id="task-input-name" type="text" placeholder="e.g. google-calendar-announcer" required style="border-radius: 4px;">
+            </div>
+            <div class="uk-text-meta uk-margin-xsmall-top" style="font-size: 11px;">Unique identifier for this task.</div>
+          </div>
+
+          <div class="uk-margin-small">
+            <label class="uk-form-label uk-text-bold" for="task-input-command">Program to Run (Command) *</label>
+            <div class="uk-form-controls">
+              <input class="uk-input uk-form-small" id="task-input-command" type="text" placeholder="e.g. npm start or node index.js" required style="border-radius: 4px; font-family: 'Roboto Mono', monospace;">
+            </div>
+            <div class="uk-text-meta uk-margin-xsmall-top" style="font-size: 11px;">The program command executed by Proceger.</div>
+          </div>
+
+          <div class="uk-margin-small">
+            <label class="uk-form-label uk-text-bold" for="task-input-git">Git Repository URL *</label>
+            <div class="uk-form-controls">
+              <input class="uk-input uk-form-small" id="task-input-git" type="text" placeholder="e.g. git@github.com:sarosia/google-calendar-announcer.git" required style="border-radius: 4px; font-family: 'Roboto Mono', monospace; font-size: 12px;">
+            </div>
+            <div class="uk-text-meta uk-margin-xsmall-top" style="font-size: 11px;">Git URL for repository clone and auto-updates.</div>
+          </div>
+
+          <div class="uk-margin-small">
+            <label class="uk-form-label uk-text-bold" for="task-input-env">Environment Variables (JSON, optional)</label>
+            <div class="uk-form-controls">
+              <textarea class="uk-textarea uk-form-small" id="task-input-env" rows="3" placeholder='{"PORT": "9001"}' style="border-radius: 4px; font-family: 'Roboto Mono', monospace; font-size: 12px;"></textarea>
+            </div>
+            <div class="uk-text-meta uk-margin-xsmall-top" style="font-size: 11px;">Optional JSON object with custom environment variables.</div>
+          </div>
+
+          <div class="uk-margin-medium-top uk-flex uk-flex-right" style="gap: 8px;">
+            <button class="uk-button uk-button-default uk-button-small uk-modal-close" type="button" style="border-radius: 4px;">Cancel</button>
+            <button class="uk-button uk-button-primary uk-button-small" id="task-modal-submit-btn" type="submit" style="border-radius: 4px;">Save Task</button>
+          </div>
+        </form>
+      </div>
     </div>
   </body>
 </html>

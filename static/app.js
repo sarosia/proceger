@@ -224,6 +224,181 @@ async function handleTaskAction(taskName, action) {
 }
 
 /**
+ * Opens modal for adding a new task.
+ */
+function openAddTaskModal() {
+  const isEdit = document.getElementById('task-is-edit');
+  const title = document.getElementById('modal-task-title');
+  const nameInput = document.getElementById('task-input-name');
+  const commandInput = document.getElementById('task-input-command');
+  const gitInput = document.getElementById('task-input-git');
+  const envInput = document.getElementById('task-input-env');
+
+  if (isEdit) isEdit.value = 'false';
+  if (title) title.textContent = 'Add Task';
+  if (nameInput) {
+    nameInput.value = '';
+    nameInput.disabled = false;
+  }
+  if (commandInput) commandInput.value = 'npm start';
+  if (gitInput) gitInput.value = '';
+  if (envInput) envInput.value = '';
+
+  if (window.UIkit && window.UIkit.modal) {
+    window.UIkit.modal('#modal-task').show();
+  }
+}
+
+/**
+ * Opens modal for editing an existing task's program and config.
+ * @param {Object} task Task object to edit.
+ */
+function openEditTaskModal(task) {
+  const isEdit = document.getElementById('task-is-edit');
+  const title = document.getElementById('modal-task-title');
+  const nameInput = document.getElementById('task-input-name');
+  const commandInput = document.getElementById('task-input-command');
+  const gitInput = document.getElementById('task-input-git');
+  const envInput = document.getElementById('task-input-env');
+
+  if (isEdit) isEdit.value = 'true';
+  if (title) title.textContent = `Edit Program: ${task.name}`;
+  if (nameInput) {
+    nameInput.value = task.name;
+    nameInput.disabled = true;
+  }
+  if (commandInput) {
+    commandInput.value = task.command || 'npm start';
+  }
+  if (gitInput) {
+    gitInput.value = task.git || '';
+  }
+  if (envInput) {
+    const envObj = task.env || {};
+    envInput.value = Object.keys(envObj).length > 0 ?
+      JSON.stringify(envObj, null, 2) : '';
+  }
+
+  if (window.UIkit && window.UIkit.modal) {
+    window.UIkit.modal('#modal-task').show();
+  }
+}
+
+/**
+ * Submits the add/edit task form to the backend.
+ * @param {Event} evt Submit event.
+ */
+async function handleTaskFormSubmit(evt) {
+  evt.preventDefault();
+  const isEdit = document.getElementById('task-is-edit').value === 'true';
+  const name = document.getElementById('task-input-name').value.trim();
+  const command = document.getElementById('task-input-command').value.trim();
+  const git = document.getElementById('task-input-git').value.trim();
+  const envRaw = document.getElementById('task-input-env').value.trim();
+  const submitBtn = document.getElementById('task-modal-submit-btn');
+
+  let env = {};
+  if (envRaw) {
+    try {
+      env = JSON.parse(envRaw);
+      if (typeof env !== 'object' || env === null || Array.isArray(env)) {
+        throw new Error('Environment variables must be a JSON object.');
+      }
+    } catch (err) {
+      alert('Invalid JSON in Environment Variables: ' + err.message);
+      return;
+    }
+  }
+
+  const payload = {
+    name,
+    command: command || 'npm start',
+    git: {url: git},
+    env,
+  };
+
+  if (submitBtn) submitBtn.disabled = true;
+
+  try {
+    const endpoint = isEdit ?
+      `/task/${encodeURIComponent(name)}` :
+      '/task';
+    const method = isEdit ? 'PUT' : 'POST';
+    const res = await fetch(endpoint, {
+      method,
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.error || `HTTP ${res.status}`);
+    }
+
+    if (window.UIkit && window.UIkit.modal) {
+      window.UIkit.modal('#modal-task').hide();
+    }
+    if (window.UIkit && window.UIkit.notification) {
+      window.UIkit.notification({
+        message: isEdit ?
+          `Task "${name}" updated in NotableDB and restarted!` :
+          `Task "${name}" created and saved in NotableDB!`,
+        status: 'success',
+        pos: 'top-center',
+        timeout: 3000,
+      });
+    }
+    selectTask(name);
+    await render(true);
+  } catch (err) {
+    console.error('Failed to save task:', err);
+    alert(`Error saving task: ${err.message}`);
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
+  }
+}
+
+/**
+ * Deletes a task after confirmation.
+ * @param {string} taskName Task name to delete.
+ */
+async function handleDeleteTask(taskName) {
+  const confirmed = confirm(
+      `Are you sure you want to remove task "${taskName}"?\n` +
+      `This will stop the process and delete it from NotableDB storage.`,
+  );
+  if (!confirmed) return;
+
+  try {
+    const res = await fetch(`/task/${encodeURIComponent(taskName)}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.error || `HTTP ${res.status}`);
+    }
+
+    if (window.UIkit && window.UIkit.notification) {
+      window.UIkit.notification({
+        message: `Task "${taskName}" removed from NotableDB.`,
+        status: 'primary',
+        pos: 'top-center',
+        timeout: 3000,
+      });
+    }
+
+    const saved = getState();
+    if (saved.task === taskName) {
+      saveState('', null);
+    }
+    await render(true);
+  } catch (err) {
+    console.error(`Failed to delete task ${taskName}:`, err);
+    alert(`Error deleting task: ${err.message}`);
+  }
+}
+
+/**
  * Renders formatted log lines into a container element.
  * @param {HTMLElement} container Container element.
  * @param {string} logs Raw logs text.
@@ -436,7 +611,15 @@ async function render(forceScroll = false) {
       el('li', {'class': 'uk-active'}, [
         el('div', {'class': 'empty-state'}, [
           el('h3', {}, 'No tasks found'),
-          el('p', {}, 'Configure tasks in your .procegerrc to get started.'),
+          el('p', {}, 'Add a program to run with NotableDB storage.'),
+          el('button', {
+            'class':
+              'uk-button uk-button-primary uk-button-small uk-margin-top',
+            'onclick': () => openAddTaskModal(),
+          }, [
+            el('span', {'uk-icon': 'icon: plus; ratio: 0.85'}),
+            el('span', {'class': 'uk-margin-small-left'}, 'Add Task'),
+          ]),
         ]),
       ]),
     ]);
@@ -460,7 +643,8 @@ async function render(forceScroll = false) {
   saveState(activeTask.name, finalLog);
 
   const structureKey = tasks.map((t) =>
-    `${t.name}:${Object.keys(t.logs || {}).join(',')}`,
+    `${t.name}:${t.command || 'npm start'}:` +
+    `${Object.keys(t.logs || {}).join(',')}`,
   ).join('|');
 
   if (currentTaskStructureKey === structureKey) {
@@ -525,6 +709,11 @@ async function render(forceScroll = false) {
       const pidElm = document.getElementById(`task-pid-${task.name}`);
       if (pidElm) {
         pidElm.textContent = String(task.pid ?? -1);
+      }
+
+      const commandElm = document.getElementById(`task-command-${task.name}`);
+      if (commandElm) {
+        commandElm.textContent = task.command || 'npm start';
       }
 
       const startTimeElm = document.getElementById(
@@ -715,6 +904,16 @@ async function render(forceScroll = false) {
               }, String(task.pid ?? -1)),
             ]),
             el('li', {'class': 'task-info-item'}, [
+              el('span', {'class': 'task-info-label'}, 'Program to Run'),
+              el('span', {
+                'id': `task-command-${task.name}`,
+                'class': 'task-info-value',
+                'style':
+                  'font-family: "Roboto Mono", monospace; ' +
+                  'font-weight: 500; color: #0284c7;',
+              }, task.command || 'npm start'),
+            ]),
+            el('li', {'class': 'task-info-item'}, [
               el('span', {'class': 'task-info-label'}, 'Repository'),
               el('span', {'class': 'task-info-value'}, task.git || 'None'),
             ]),
@@ -761,6 +960,28 @@ async function render(forceScroll = false) {
               el('span', {
                 'id': `task-restart-text-${task.name}`,
               }, task.status === 'STOPPED' ? 'Start' : 'Restart'),
+            ]),
+            el('button', {
+              'id': `task-edit-btn-${task.name}`,
+              'class': 'uk-button uk-button-default task-btn',
+              'title': 'Modify program command or settings',
+              'onclick': () => {
+                openEditTaskModal(task);
+              },
+            }, [
+              el('span', {'uk-icon': 'icon: file-edit; ratio: 0.85'}),
+              el('span', {}, 'Edit Program'),
+            ]),
+            el('button', {
+              'id': `task-delete-btn-${task.name}`,
+              'class': 'uk-button uk-button-default task-btn task-btn-delete',
+              'title': 'Delete task from NotableDB',
+              'onclick': () => {
+                handleDeleteTask(task.name);
+              },
+            }, [
+              el('span', {'uk-icon': 'icon: trash; ratio: 0.85'}),
+              el('span', {}, 'Delete'),
             ]),
           ]),
         ]),
@@ -915,6 +1136,18 @@ window.onload = async function() {
         setTimeout(() => refreshBtn.classList.remove('loading'), 400);
       }
     });
+  }
+
+  const addTaskBtn = document.getElementById('add-task-btn');
+  if (addTaskBtn) {
+    addTaskBtn.addEventListener('click', () => {
+      openAddTaskModal();
+    });
+  }
+
+  const formTask = document.getElementById('form-task');
+  if (formTask) {
+    formTask.addEventListener('submit', handleTaskFormSubmit);
   }
 
   // Periodic polling for task status and log updates.

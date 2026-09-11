@@ -18,7 +18,13 @@ describe('App', function() {
 
   it('configures auth manager with proceger defaults', () => {
     const taskManager = sinon.createStubInstance(TaskManager);
-    const app = createApp(taskManager);
+    const app = createApp(taskManager, {
+      name: 'proceger',
+      auth: {
+        clientId: 'mock-client-id',
+        clientSecret: 'mock-client-secret',
+      },
+    });
     app.getAuth.should.be.a('function');
     const auth = app.getAuth();
     auth.should.be.an('object');

@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@sarosia/apper": "github:sarosia/apper",
+    "@sarosia/notabledb": "github:sarosia/notabledb",
     "glob": "^7.1.6",
     "glob-promise": "^3.4.0",
     "simple-git": "^3.3.0",
