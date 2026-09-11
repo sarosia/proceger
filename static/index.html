@@ -16,17 +16,17 @@
   <body>
     <div class="uk-container uk-container-center app-container">
       <header class="app-header uk-margin-bottom">
-        <div class="uk-flex uk-flex-between uk-flex-middle">
-          <div class="uk-flex uk-flex-middle">
+        <div class="header-inner uk-flex uk-flex-between uk-flex-middle">
+          <div class="header-left uk-flex uk-flex-middle">
             <h1 class="uk-heading-bullet app-title uk-margin-remove">Proceger</h1>
             <span id="header-status" class="uk-margin-small-left"></span>
           </div>
-          <div class="uk-flex uk-flex-middle" style="gap: 10px;">
-            <button id="add-task-btn" class="uk-button uk-button-primary uk-button-small" title="Add Task">
+          <div class="header-actions uk-flex uk-flex-middle">
+            <button id="add-task-btn" class="uk-button uk-button-primary uk-button-small header-action-btn" title="Add Task" aria-label="Add Task">
               <span uk-icon="icon: plus; ratio: 0.85"></span>
-              <span class="uk-margin-small-left">Add Task</span>
+              <span class="uk-visible@s uk-margin-small-left">Add Task</span>
             </button>
-            <button id="refresh-btn" class="uk-button uk-button-default uk-button-small refresh-btn" title="Refresh">
+            <button id="refresh-btn" class="uk-button uk-button-default uk-button-small header-action-btn refresh-btn" title="Refresh" aria-label="Refresh">
               <span uk-icon="icon: refresh; ratio: 0.85"></span>
               <span class="uk-visible@s uk-margin-small-left">Refresh</span>
             </button>

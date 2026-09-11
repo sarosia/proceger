@@ -27,15 +27,32 @@ body {
 
 /* Header */
 .app-header {
-  padding-top: 16px;
+  padding-top: 14px;
   padding-bottom: 12px;
   border-bottom: 1px solid #e2e8f0;
 }
 
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+  width: 100%;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
 .app-title {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 700;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 @media (min-width: 640px) {
@@ -44,16 +61,25 @@ body {
   }
 }
 
-.refresh-btn {
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.header-action-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 38px;
-  min-width: 38px;
+  height: 36px;
+  min-width: 36px;
   padding: 0 12px;
   border-radius: 6px;
   font-size: 13px;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .refresh-btn.loading [uk-icon] {
@@ -63,6 +89,33 @@ body {
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+@media (max-width: 639px) {
+  .app-header {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .app-title {
+    font-size: 1.2rem;
+  }
+
+  .header-actions {
+    gap: 6px;
+  }
+
+  .header-action-btn {
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+  }
+
+  #header-status .uk-badge {
+    font-size: 10.5px;
+    padding: 2px 7px;
+  }
 }
 
 /* User Profile Avatar & Dropdown */
