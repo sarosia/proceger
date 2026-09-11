@@ -407,6 +407,18 @@ body {
   background-color: #334155;
 }
 
+.terminal-btn-highlight {
+  color: #38bdf8;
+  border-color: #0284c7;
+  background-color: rgba(2, 132, 199, 0.15);
+}
+
+.terminal-btn-highlight:hover,
+.terminal-btn-highlight:active {
+  color: #ffffff;
+  background-color: #0284c7;
+}
+
 .logs-body {
   padding: 12px;
   max-height: 55vh;
@@ -414,7 +426,6 @@ body {
   overflow-x: auto;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scroll-behavior: smooth;
   margin: 0;
 }
 
