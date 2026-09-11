@@ -68,9 +68,17 @@
           </div>
 
           <div class="uk-margin-small">
-            <label class="uk-form-label uk-text-bold" for="task-input-git">Git Repository URL *</label>
+            <label class="uk-form-label uk-text-bold" for="task-input-path">Directory / Path (optional if Git URL provided)</label>
             <div class="uk-form-controls">
-              <input class="uk-input uk-form-small" id="task-input-git" type="text" placeholder="e.g. git@github.com:sarosia/google-calendar-announcer.git" required style="border-radius: 4px; font-family: 'Roboto Mono', monospace; font-size: 12px;">
+              <input class="uk-input uk-form-small" id="task-input-path" type="text" placeholder="e.g. /home/cmto/workspace/revanna or ~/workspace/app" style="border-radius: 4px; font-family: 'Roboto Mono', monospace; font-size: 12px;">
+            </div>
+            <div class="uk-text-meta uk-margin-xsmall-top" style="font-size: 11px;">Working directory for launching programs without Git clone.</div>
+          </div>
+
+          <div class="uk-margin-small">
+            <label class="uk-form-label uk-text-bold" for="task-input-git">Git Repository URL (optional if Path provided)</label>
+            <div class="uk-form-controls">
+              <input class="uk-input uk-form-small" id="task-input-git" type="text" placeholder="e.g. git@github.com:sarosia/google-calendar-announcer.git" style="border-radius: 4px; font-family: 'Roboto Mono', monospace; font-size: 12px;">
             </div>
             <div class="uk-text-meta uk-margin-xsmall-top" style="font-size: 11px;">Git URL for repository clone and auto-updates.</div>
           </div>

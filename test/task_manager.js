@@ -28,23 +28,30 @@ describe('TaskManager with TaskStore', () => {
     });
   });
 
-  it('loads tasks from config into store and starts them', async () => {
-    await taskManager.loadFromConfig({
-      workspace: '/tmp/test-workspace',
-      tasks: [
-        {
+  it('loads tasks from notabledb store and ignores tasks in config',
+      async () => {
+        await store.addTask({
           name: 'worker',
           git: 'git@github.com:example/worker.git',
           command: 'node worker.js',
-        },
-      ],
-    });
+        });
 
-    const stored = await store.listTasks();
-    expect(stored).to.have.lengthOf(1);
-    expect(stored[0].name).to.equal('worker');
-    expect(stored[0].command).to.equal('node worker.js');
-  });
+        await taskManager.loadFromConfig({
+          workspace: '/tmp/test-workspace',
+          tasks: [
+            {
+              name: 'ignored-task',
+              git: 'git@github.com:example/ignored.git',
+              command: 'node ignored.js',
+            },
+          ],
+        });
+
+        const stored = await store.listTasks();
+        expect(stored).to.have.lengthOf(1);
+        expect(stored[0].name).to.equal('worker');
+        expect(stored[0].command).to.equal('node worker.js');
+      });
 
   it('updates task command in notabledb store', async () => {
     await store.addTask({

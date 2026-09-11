@@ -56,6 +56,9 @@ const e = function(...args) {
         children = [children];
       }
       for (const child of children) {
+        if (!child) {
+          continue;
+        }
         const childElm = buildElement(child);
         elm.appendChild(childElm);
       }

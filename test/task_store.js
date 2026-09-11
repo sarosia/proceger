@@ -55,7 +55,7 @@ describe('TaskStore with notabledb', () => {
     expect(fetched.command).to.equal('npm start');
   });
 
-  it('rejects adding task without name or git URL', async () => {
+  it('rejects adding task without name or location (git / path)', async () => {
     try {
       await store.addTask({git: 'git@github.com:example/worker.git'});
       expect.fail('Should have thrown');
@@ -67,8 +67,20 @@ describe('TaskStore with notabledb', () => {
       await store.addTask({name: 'test'});
       expect.fail('Should have thrown');
     } catch (e) {
-      expect(e.message).to.include('Git repository URL is required');
+      expect(e.message).to.include(
+          'Either Git repository URL or local path is required');
     }
+  });
+
+  it('adds a task with local path without git', async () => {
+    const task = await store.addTask({
+      name: 'local-app',
+      path: '/tmp/local-app',
+      command: 'node index.js',
+    });
+    expect(task.name).to.equal('local-app');
+    expect(task.path).to.equal('/tmp/local-app');
+    expect(task.git).to.equal(null);
   });
 
   it('updates task command and environment', async () => {

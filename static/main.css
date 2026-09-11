@@ -472,10 +472,34 @@ body {
   background-color: #0284c7;
 }
 
+.terminal-btn-primary {
+  background-color: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.terminal-btn-primary:hover,
+.terminal-btn-primary:active {
+  background-color: #0369a1;
+  border-color: #0369a1;
+  color: #ffffff;
+}
+
 .logs-body {
   padding: 12px;
   max-height: 55vh;
   min-height: 200px;
+  overflow-x: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0;
+}
+
+.log-preview-body {
+  padding: 12px;
+  max-height: 240px;
+  min-height: 120px;
   overflow-x: auto;
   overflow-y: auto;
   overscroll-behavior: contain;

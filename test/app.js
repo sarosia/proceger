@@ -43,4 +43,35 @@ describe('App', function() {
     const auth = app.getAuth();
     auth.isEnabled().should.equal(false);
   });
+
+  it('configures logDir from config and passes to logger', () => {
+    const taskManager = sinon.createStubInstance(TaskManager);
+    const customLogDir = '/tmp/custom-proceger-logs';
+    const app = createApp(taskManager, {
+      logDir: customLogDir,
+    });
+    app.getContext().logger.logDir.should.equal(customLogDir);
+  });
+
+  it('returns proceger as a system task in /task/list', async () => {
+    const taskManager = sinon.createStubInstance(TaskManager);
+    taskManager.getAllTasks.returns([]);
+    const app = createApp(taskManager, {
+      port: 0,
+      auth: {enabled: false},
+    });
+    const server = await app.start();
+    const port = server.address().port;
+    try {
+      const res = await fetch(`http://localhost:${port}/task/list`);
+      const tasks = await res.json();
+      tasks.should.be.an('array');
+      tasks.length.should.equal(1);
+      tasks[0].name.should.equal('proceger');
+      tasks[0].isSystem.should.equal(true);
+      tasks[0].status.should.equal('RUNNING');
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
 });

@@ -2,7 +2,6 @@ import e from './e.js';
 
 let actionInProgress = false;
 let currentTaskStructureKey = '';
-const logScrollStates = new Map();
 
 /**
  * Creates an element definition array for e().
@@ -13,16 +12,6 @@ const logScrollStates = new Map();
  */
 function el(type, attrs = {}, children) {
   return [type, attrs, children];
-}
-
-/**
- * Checks if a scrollable element is near the bottom.
- * @param {?HTMLElement} elm Element to inspect.
- * @return {boolean} True if near bottom or not scrollable.
- */
-function isScrolledNearBottom(elm) {
-  if (!elm || elm.clientHeight === 0) return true;
-  return elm.scrollHeight - elm.scrollTop - elm.clientHeight < 30;
 }
 
 /**
@@ -231,6 +220,7 @@ function openAddTaskModal() {
   const title = document.getElementById('modal-task-title');
   const nameInput = document.getElementById('task-input-name');
   const commandInput = document.getElementById('task-input-command');
+  const pathInput = document.getElementById('task-input-path');
   const gitInput = document.getElementById('task-input-git');
   const envInput = document.getElementById('task-input-env');
 
@@ -241,6 +231,7 @@ function openAddTaskModal() {
     nameInput.disabled = false;
   }
   if (commandInput) commandInput.value = 'npm start';
+  if (pathInput) pathInput.value = '';
   if (gitInput) gitInput.value = '';
   if (envInput) envInput.value = '';
 
@@ -258,6 +249,7 @@ function openEditTaskModal(task) {
   const title = document.getElementById('modal-task-title');
   const nameInput = document.getElementById('task-input-name');
   const commandInput = document.getElementById('task-input-command');
+  const pathInput = document.getElementById('task-input-path');
   const gitInput = document.getElementById('task-input-git');
   const envInput = document.getElementById('task-input-env');
 
@@ -269,6 +261,9 @@ function openEditTaskModal(task) {
   }
   if (commandInput) {
     commandInput.value = task.command || 'npm start';
+  }
+  if (pathInput) {
+    pathInput.value = task.path || '';
   }
   if (gitInput) {
     gitInput.value = task.git || '';
@@ -293,9 +288,16 @@ async function handleTaskFormSubmit(evt) {
   const isEdit = document.getElementById('task-is-edit').value === 'true';
   const name = document.getElementById('task-input-name').value.trim();
   const command = document.getElementById('task-input-command').value.trim();
+  const pathInput = document.getElementById('task-input-path');
+  const taskPath = pathInput ? pathInput.value.trim() : '';
   const git = document.getElementById('task-input-git').value.trim();
   const envRaw = document.getElementById('task-input-env').value.trim();
   const submitBtn = document.getElementById('task-modal-submit-btn');
+
+  if (!git && !taskPath) {
+    alert('Either Git repository URL or Directory Path is required.');
+    return;
+  }
 
   let env = {};
   if (envRaw) {
@@ -313,7 +315,8 @@ async function handleTaskFormSubmit(evt) {
   const payload = {
     name,
     command: command || 'npm start',
-    git: {url: git},
+    git: git ? {url: git} : null,
+    path: taskPath || null,
     env,
   };
 
@@ -415,67 +418,32 @@ function renderLogLinesInto(container, logs) {
 }
 
 /**
- * Updates the appearance and title of the bottom button for a log.
- * @param {string} taskName Task name.
- * @param {string} logName Log filename.
- * @param {boolean} userScrolledUp Whether user navigated away from bottom.
+ * Extracts the last N lines from a raw logs string.
+ * @param {string} logs Raw logs text.
+ * @param {number} [count=10] Max number of lines to return.
+ * @return {Array<string>} Array of raw line strings.
  */
-function updateBottomButtonState(taskName, logName, userScrolledUp) {
-  const btn = document.getElementById(`bottom-btn-${taskName}-${logName}`);
-  if (btn) {
-    if (userScrolledUp) {
-      btn.classList.add('terminal-btn-highlight');
-      btn.title = 'Auto-scroll paused (navigating). Click to jump to bottom.';
-    } else {
-      btn.classList.remove('terminal-btn-highlight');
-      btn.title = 'Jump to bottom';
-    }
+function getLastLogLines(logs, count = 10) {
+  if (!logs) return [];
+  const lines = logs.split('\n');
+  while (lines.length > 0 && lines[lines.length - 1] === '') {
+    lines.pop();
   }
+  return lines.slice(-count);
 }
 
 /**
- * Attaches scroll listener to a log element to track user navigation.
- * @param {HTMLElement} logElm Log container.
+ * Generates the URL to open full logs in a dedicated view or popup.
  * @param {string} taskName Task name.
- * @param {string} logName Log filename.
+ * @param {?string} logName Optional log filename.
+ * @return {string} Relative URL for log.html.
  */
-function bindLogScrollTracker(logElm, taskName, logName) {
-  const key = `${taskName}:${logName}`;
-  logElm.addEventListener('scroll', () => {
-    if (logElm.clientHeight === 0) return;
-    const isNearBottom = isScrolledNearBottom(logElm);
-    const state = logScrollStates.get(key) || {
-      scrollTop: 0,
-      userScrolledUp: false,
-    };
-    state.scrollTop = logElm.scrollTop;
-    state.userScrolledUp = !isNearBottom;
-    logScrollStates.set(key, state);
-    updateBottomButtonState(taskName, logName, state.userScrolledUp);
-  }, {passive: true});
-}
-
-/**
- * Scrolls the active log container to the bottom and resets scroll tracking.
- * @param {string} taskName Task name.
- * @param {?string} logName Log filename.
- */
-function scrollActiveLogToBottom(taskName, logName) {
-  if (!logName) return;
-  const bodyId = `log-body-${taskName}-${logName}`;
-  const logElm = document.getElementById(bodyId);
-  if (logElm) {
-    logElm.scrollTop = logElm.scrollHeight;
-    const key = `${taskName}:${logName}`;
-    const state = logScrollStates.get(key) || {
-      scrollTop: 0,
-      userScrolledUp: false,
-    };
-    state.scrollTop = logElm.scrollTop;
-    state.userScrolledUp = false;
-    logScrollStates.set(key, state);
-    updateBottomButtonState(taskName, logName, false);
+function getLogOpenUrl(taskName, logName) {
+  const encTask = encodeURIComponent(taskName);
+  if (!logName) {
+    return `/log.html?task=${encTask}`;
   }
+  return `/log.html?task=${encTask}&log=${encodeURIComponent(logName)}`;
 }
 
 /**
@@ -484,8 +452,12 @@ function scrollActiveLogToBottom(taskName, logName) {
  * @param {?string} [preferredLog] Optional log filename.
  */
 function selectTask(taskName, preferredLog = null) {
+  const currentScrollY = window.scrollY;
   saveState(taskName, preferredLog);
-  render(true);
+  render(false);
+  if (window.scrollY !== currentScrollY) {
+    window.scrollTo(window.scrollX, currentScrollY);
+  }
 }
 
 /**
@@ -494,8 +466,12 @@ function selectTask(taskName, preferredLog = null) {
  * @param {string} logName Log filename.
  */
 function selectLog(taskName, logName) {
+  const currentScrollY = window.scrollY;
   saveState(taskName, logName);
-  render(true);
+  render(false);
+  if (window.scrollY !== currentScrollY) {
+    window.scrollTo(window.scrollX, currentScrollY);
+  }
 }
 
 /**
@@ -716,6 +692,11 @@ async function render(forceScroll = false) {
         commandElm.textContent = task.command || 'npm start';
       }
 
+      const pathElm = document.getElementById(`task-path-${task.name}`);
+      if (pathElm) {
+        pathElm.textContent = task.path || 'None';
+      }
+
       const startTimeElm = document.getElementById(
           `task-starttime-${task.name}`,
       );
@@ -723,7 +704,7 @@ async function render(forceScroll = false) {
         startTimeElm.textContent = formatStartTime(task.startTime);
       }
 
-      if (!actionInProgress) {
+      if (!actionInProgress && !task.isSystem) {
         const stopBtn = document.getElementById(
             `task-stop-btn-${task.name}`,
         );
@@ -766,68 +747,44 @@ async function render(forceScroll = false) {
         }
       }
 
+      const activeLog = logFiles[activeLogIndex] || null;
+      const activeLogsText = activeLog ?
+          ((task.logs || {})[activeLog] || '') : '';
+      const totalLines = activeLogsText ?
+          activeLogsText.split('\n').filter(Boolean).length : 0;
+      const last10Lines = getLastLogLines(activeLogsText, 10);
+      const last10Text = last10Lines.join('\n');
+
       for (let logIdx = 0; logIdx < logFiles.length; logIdx++) {
         const filename = logFiles[logIdx];
-        const logs = (task.logs || {})[filename] || '';
         const isLogActive = logIdx === activeLogIndex;
-
         const logTabLi = document.getElementById(
             `log-tab-item-${task.name}-${filename}`,
         );
         if (logTabLi) {
           logTabLi.className = isLogActive ? 'uk-active' : '';
         }
+      }
 
-        const logContentLi = document.getElementById(
-            `log-content-${task.name}-${filename}`,
-        );
-        if (logContentLi) {
-          logContentLi.className = isLogActive ? 'uk-active' : '';
-          logContentLi.style.display = isLogActive ? '' : 'none';
-        }
+      const countElm = document.getElementById(`log-count-${task.name}`);
+      if (countElm) {
+        const previewCount = last10Lines.length;
+        countElm.textContent = activeLog ?
+            `${activeLog} (last ${previewCount} of ${totalLines} entries)` :
+            'No logs';
+      }
 
-        const lineCount = logs ? logs.split('\n').filter(Boolean).length : 0;
-        const countElm = document.getElementById(
-            `log-count-${task.name}-${filename}`,
-        );
-        if (countElm) {
-          countElm.textContent = `${filename} (${lineCount} lines)`;
-        }
+      const openBtn = document.getElementById(`log-open-btn-${task.name}`);
+      if (openBtn) {
+        openBtn.href = getLogOpenUrl(task.name, activeLog);
+      }
 
-        const logBody = document.getElementById(
-            `log-body-${task.name}-${filename}`,
-        );
-        if (logBody) {
-          const key = `${task.name}:${filename}`;
-          const state = logScrollStates.get(key) || {
-            scrollTop: 0,
-            userScrolledUp: false,
-          };
-
-          if (logBody._rawLogs !== logs) {
-            if (logBody.clientHeight > 0) {
-              state.scrollTop = logBody.scrollTop;
-              state.userScrolledUp = !isScrolledNearBottom(logBody);
-            }
-            renderLogLinesInto(logBody, logs);
-
-            if ((forceScroll && isTaskActive && isLogActive) ||
-                !state.userScrolledUp) {
-              logBody.scrollTop = logBody.scrollHeight;
-              state.scrollTop = logBody.scrollTop;
-              state.userScrolledUp = false;
-            } else {
-              logBody.scrollTop = state.scrollTop;
-            }
-            logScrollStates.set(key, state);
-            updateBottomButtonState(task.name, filename, state.userScrolledUp);
-          } else if (forceScroll && isTaskActive && isLogActive) {
-            logBody.scrollTop = logBody.scrollHeight;
-            state.scrollTop = logBody.scrollTop;
-            state.userScrolledUp = false;
-            logScrollStates.set(key, state);
-            updateBottomButtonState(task.name, filename, false);
-          }
+      const logBody = document.getElementById(`log-body-${task.name}`);
+      if (logBody) {
+        if (logBody._previewText !== last10Text) {
+          logBody._previewText = last10Text;
+          renderLogLinesInto(logBody, last10Text);
+          logBody.scrollTop = logBody.scrollHeight;
         }
       }
     }
@@ -854,7 +811,14 @@ async function render(forceScroll = false) {
             'class': `status-dot ${statusClass}`,
           }),
           el('span', {'id': `task-tab-name-${task.name}`}, task.name),
-        ]),
+        ].concat(task.isSystem ? [
+          el('span', {
+            'class': 'uk-badge',
+            'style':
+              'font-size: 10px; background: #6366f1; margin-left: 6px; ' +
+              'padding: 1px 6px; border-radius: 4px; vertical-align: middle;',
+          }, 'System'),
+        ] : [])),
       ]);
     }));
 
@@ -869,6 +833,13 @@ async function render(forceScroll = false) {
       if (activeLogIndex === -1) {
         activeLogIndex = logFiles.length > 0 ? logFiles.length - 1 : 0;
       }
+
+      const activeLog = logFiles[activeLogIndex] || null;
+      const activeLogsText = activeLog ?
+          ((task.logs || {})[activeLog] || '') : '';
+      const totalLines = activeLogsText ?
+          activeLogsText.split('\n').filter(Boolean).length : 0;
+      const last10Lines = getLastLogLines(activeLogsText, 10);
 
       const statusClass = getStatusClass(task.status);
       const isRunning = task.status === 'RUNNING';
@@ -914,6 +885,15 @@ async function render(forceScroll = false) {
               }, task.command || 'npm start'),
             ]),
             el('li', {'class': 'task-info-item'}, [
+              el('span', {'class': 'task-info-label'}, 'Directory Path'),
+              el('span', {
+                'id': `task-path-${task.name}`,
+                'class': 'task-info-value',
+                'style':
+                  'font-family: "Roboto Mono", monospace; font-size: 12px;',
+              }, task.path || 'None'),
+            ]),
+            el('li', {'class': 'task-info-item'}, [
               el('span', {'class': 'task-info-label'}, 'Repository'),
               el('span', {'class': 'task-info-value'}, task.git || 'None'),
             ]),
@@ -936,7 +916,17 @@ async function render(forceScroll = false) {
             ]),
           ]),
 
-          el('div', {'class': 'task-actions'}, [
+          el('div', {'class': 'task-actions'}, task.isSystem ? [
+            el('span', {
+              'class': 'uk-text-meta',
+              'style':
+                'display: inline-flex; align-items: center; gap: 6px; ' +
+                'font-weight: 500; color: #64748b; font-size: 13px;',
+            }, [
+              el('span', {'uk-icon': 'icon: server; ratio: 0.85'}),
+              el('span', {}, 'Main Proceger daemon process (active)'),
+            ]),
+          ] : [
             el('button', {
               'id': `task-stop-btn-${task.name}`,
               'class': 'uk-button uk-button-danger task-btn',
@@ -986,126 +976,96 @@ async function render(forceScroll = false) {
           ]),
         ]),
 
-        el('div', {'class': 'log-tab-wrapper'}, [
-          el('ul', {
-            'id': `task-${task.name}-logs-tab`,
-            'class': 'uk-tab log-tab',
-            'uk-tab': `connect: #task-${task.name}-logs`,
-          },
-          logFiles.map((filename, logIdx) => {
-            const isLogActive = logIdx === activeLogIndex;
-            return el('li', {
-              'id': `log-tab-item-${task.name}-${filename}`,
-              'class': isLogActive ? 'uk-active' : '',
-            }, [
-              el('a', {
-                'href': '#',
-                'onclick': (evt) => {
-                  evt.preventDefault();
-                  selectLog(task.name, filename);
-                },
-              }, filename),
-            ]);
-          })),
-        ]),
-
-        el('ul', {
-          'id': `task-${task.name}-logs`,
-          'class': 'uk-switcher uk-margin-remove-top',
-        },
-        logFiles.length === 0 ? [
-          el('li', {'class': 'uk-active'}, [
-            el('div', {'class': 'logs-terminal'}, [
-              el('div', {'class': 'logs-toolbar'}, [
-                el('span', {'class': 'logs-filename'}, 'No logs'),
-              ]),
-              el('div', {'class': 'logs-body'}, [
-                el(
-                    'p',
-                    {'class': 'empty-log'},
-                    'No logs recorded yet for this task.',
-                ),
-              ]),
-            ]),
+        el('div', {'class': 'log-preview-section uk-margin-small-top'}, [
+          el('div', {'class': 'log-tab-wrapper'}, [
+            el('ul', {
+              'id': `task-${task.name}-logs-tab`,
+              'class': 'uk-tab log-tab',
+            },
+            logFiles.map((filename, logIdx) => {
+              const isLogActive = logIdx === activeLogIndex;
+              return el('li', {
+                'id': `log-tab-item-${task.name}-${filename}`,
+                'class': isLogActive ? 'uk-active' : '',
+              }, [
+                el('a', {
+                  'href': '#',
+                  'onclick': (evt) => {
+                    evt.preventDefault();
+                    selectLog(task.name, filename);
+                  },
+                }, filename),
+              ]);
+            })),
           ]),
-        ] :
-        logFiles.map((filename, logIdx) => {
-          const isLogActive = logIdx === activeLogIndex;
-          const bodyId = `log-body-${task.name}-${filename}`;
-          const logs = (task.logs || {})[filename] || '';
-          const lineCount = logs ? logs.split('\n').filter(Boolean).length : 0;
 
-          return el('li', {
-            'id': `log-content-${task.name}-${filename}`,
-            'class': isLogActive ? 'uk-active' : '',
-            'style': isLogActive ? '' : 'display: none;',
-          }, [
-            el('div', {'class': 'logs-terminal'}, [
-              el('div', {'class': 'logs-toolbar'}, [
-                el(
-                    'span',
-                    {
-                      'id': `log-count-${task.name}-${filename}`,
-                      'class': 'logs-filename',
-                    },
-                    `${filename} (${lineCount} lines)`,
-                ),
-                el('div', {'class': 'logs-toolbar-actions'}, [
-                  el('button', {
-                    'class': 'terminal-btn',
-                    'onclick': (evt) => copyLogText(logs, evt.currentTarget),
-                  }, 'Copy'),
-                  el('button', {
-                    'id': `bottom-btn-${task.name}-${filename}`,
-                    'class': 'terminal-btn',
-                    'onclick': () => {
-                      scrollActiveLogToBottom(task.name, filename);
-                    },
-                  }, 'Bottom'),
+          el('div', {'class': 'logs-terminal'}, [
+            el('div', {'class': 'logs-toolbar'}, [
+              el('span', {
+                'id': `log-count-${task.name}`,
+                'class': 'logs-filename',
+              }, activeLog ?
+                  `${activeLog} (last ${last10Lines.length} of ` +
+                  `${totalLines} entries)` :
+                  'No logs'),
+              el('div', {'class': 'logs-toolbar-actions'}, [
+                el('button', {
+                  'class': 'terminal-btn',
+                  'onclick': (evt) => {
+                    const bodyElm = document.getElementById(
+                        `log-body-${task.name}`,
+                    );
+                    const text = bodyElm ? (bodyElm._previewText || '') : '';
+                    copyLogText(text, evt.currentTarget);
+                  },
+                }, 'Copy Preview'),
+                el('a', {
+                  'id': `log-open-btn-${task.name}`,
+                  'class': 'terminal-btn terminal-btn-primary',
+                  'href': getLogOpenUrl(task.name, activeLog),
+                  'target': '_blank',
+                  'onclick': (evt) => {
+                    evt.preventDefault();
+                    window.open(
+                        evt.currentTarget.href,
+                        '_blank',
+                        'width=1100,height=800,scrollbars=yes,resizable=yes',
+                    );
+                  },
+                }, [
+                  el('span', {'uk-icon': 'icon: expand; ratio: 0.8'}),
+                  el('span', {}, 'Open Full Logs'),
                 ]),
               ]),
-              el('div', {
-                'id': bodyId,
-                'class': 'logs-body',
-              }, []),
             ]),
-          ]);
-        })),
+            el('div', {
+              'id': `log-body-${task.name}`,
+              'class': 'logs-body log-preview-body',
+            }, []),
+          ]),
+        ]),
       ]);
     }));
 
-    // Populate log bodies and attach scroll trackers.
+    // Populate preview log bodies with the last 10 lines.
     for (const task of tasks) {
       const logFiles = Object.keys(task.logs || {});
-      for (const filename of logFiles) {
-        const bodyId = `log-body-${task.name}-${filename}`;
-        const logElm = document.getElementById(bodyId);
-        const logs = (task.logs || {})[filename] || '';
-        if (logElm) {
-          renderLogLinesInto(logElm, logs);
-          bindLogScrollTracker(logElm, task.name, filename);
-        }
+      let activeLogIndex = -1;
+      if (task.name === activeTask.name && finalLog) {
+        activeLogIndex = logFiles.indexOf(finalLog);
       }
-    }
-
-    if (finalLog) {
-      const activeLogElm = document.getElementById(
-          `log-body-${activeTask.name}-${finalLog}`,
-      );
-      if (activeLogElm) {
-        const key = `${activeTask.name}:${finalLog}`;
-        const state = logScrollStates.get(key);
-        if (forceScroll || !state || !state.userScrolledUp) {
-          activeLogElm.scrollTop = activeLogElm.scrollHeight;
-          logScrollStates.set(key, {
-            scrollTop: activeLogElm.scrollTop,
-            userScrolledUp: false,
-          });
-          updateBottomButtonState(activeTask.name, finalLog, false);
-        } else {
-          activeLogElm.scrollTop = state.scrollTop;
-          updateBottomButtonState(activeTask.name, finalLog, true);
-        }
+      if (activeLogIndex === -1) {
+        activeLogIndex = logFiles.length > 0 ? logFiles.length - 1 : 0;
+      }
+      const activeLog = logFiles[activeLogIndex] || null;
+      const activeLogsText = activeLog ?
+          ((task.logs || {})[activeLog] || '') : '';
+      const last10Text = getLastLogLines(activeLogsText, 10).join('\n');
+      const logBody = document.getElementById(`log-body-${task.name}`);
+      if (logBody) {
+        logBody._previewText = last10Text;
+        renderLogLinesInto(logBody, last10Text);
+        logBody.scrollTop = logBody.scrollHeight;
       }
     }
   }

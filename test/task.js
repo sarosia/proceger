@@ -1,3 +1,5 @@
+const fs = require('fs/promises');
+const os = require('os');
 const chai = require('chai');
 const path = require('path');
 const sinon = require('sinon');
@@ -10,6 +12,35 @@ const sleep = require('util').promisify(setTimeout);
 describe('Task', function() {
   const workspace = path.join(__dirname, 'testdata');
   const repo1Path = path.join(workspace, 'repo1');
+  const homeDir = process.env.HOME || os.homedir();
+  const repo1LogDir = path.join(homeDir, 'logs', 'repo1');
+  const local1LogDir = path.join(homeDir, 'logs', 'local1');
+
+  beforeEach(async () => {
+    await fs.rm(repo1LogDir, {recursive: true, force: true});
+    await fs.rm(local1LogDir, {recursive: true, force: true});
+    await fs.writeFile(
+        path.join(repo1Path, 'stdout.log'),
+        'log1\nlog2\nlog3\n',
+    );
+    await fs.writeFile(
+        path.join(repo1Path, 'stderr.log'),
+        'log1\nlog2\nlog3\n',
+    );
+  });
+
+  afterEach(async () => {
+    await fs.rm(repo1LogDir, {recursive: true, force: true});
+    await fs.rm(local1LogDir, {recursive: true, force: true});
+    await fs.writeFile(
+        path.join(repo1Path, 'stdout.log'),
+        'log1\nlog2\nlog3\n',
+    );
+    await fs.writeFile(
+        path.join(repo1Path, 'stderr.log'),
+        'log1\nlog2\nlog3\n',
+    );
+  });
 
   function createGitStub() {
     return sinon.createStubInstance(Git, {
@@ -169,5 +200,27 @@ describe('Task', function() {
         true,
     );
     exitCode.should.equal(0);
+  });
+
+  it('supports task with local path and null git', async () => {
+    const task = new Task({
+      name: 'local1',
+      path: repo1Path,
+      command: 'npm start',
+    }, null, 1000);
+    const json = await task.toJson();
+    json.name.should.equal('local1');
+    json.path.should.equal(repo1Path);
+    (json.git === null).should.be.true;
+
+    await task.start();
+    try {
+      const runningJson = await task.toJson();
+      runningJson.status.should.equal('RUNNING');
+      runningJson.pid.should.not.equal(-1);
+      await task.pollUpdates();
+    } finally {
+      await task.stop();
+    }
   });
 });
