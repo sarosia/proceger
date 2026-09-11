@@ -213,6 +213,58 @@ async function handleTaskAction(taskName, action) {
 }
 
 /**
+ * Forces an immediate Git poll and update check for a task.
+ * @param {string} taskName Task name.
+ */
+async function handlePollUpdates(taskName) {
+  if (actionInProgress) return;
+  actionInProgress = true;
+
+  const pollBtn = document.getElementById(`task-poll-btn-${taskName}`);
+  const pollText = document.getElementById(`task-poll-text-${taskName}`);
+  if (pollBtn) pollBtn.disabled = true;
+  if (pollText) pollText.textContent = 'Checking...';
+
+  try {
+    const res = await fetch(`/task/${encodeURIComponent(taskName)}/poll`);
+    if (res.status === 401) {
+      window.location.href = '/login';
+      return;
+    }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || `HTTP ${res.status}`);
+    }
+
+    if (window.UIkit && window.UIkit.notification) {
+      const isUpdated = Boolean(data.updated);
+      window.UIkit.notification({
+        message: isUpdated ?
+          `New git updates found! Task "${taskName}" restarting.` :
+          `Task "${taskName}" is already up to date.`,
+        status: isUpdated ? 'success' : 'primary',
+        pos: 'top-center',
+        timeout: 3500,
+      });
+    }
+  } catch (err) {
+    console.error(`Failed to poll updates for ${taskName}:`, err);
+    if (window.UIkit && window.UIkit.notification) {
+      window.UIkit.notification({
+        message: `Failed to check updates: ${err.message}`,
+        status: 'danger',
+        pos: 'top-center',
+        timeout: 4000,
+      });
+    }
+  } finally {
+    actionInProgress = false;
+    await render(true);
+    setTimeout(() => render(false), 1000);
+  }
+}
+
+/**
  * Opens modal for adding a new task.
  */
 function openAddTaskModal() {
@@ -619,7 +671,7 @@ async function render(forceScroll = false) {
   saveState(activeTask.name, finalLog);
 
   const structureKey = tasks.map((t) =>
-    `${t.name}:${t.command || 'npm start'}:` +
+    `${t.name}:${t.command || 'npm start'}:${Boolean(t.git)}:` +
     `${Object.keys(t.logs || {}).join(',')}`,
   ).join('|');
 
@@ -744,6 +796,12 @@ async function render(forceScroll = false) {
           } else {
             restartText.textContent = targetText;
           }
+        }
+        const pollBtn = document.getElementById(
+            `task-poll-btn-${task.name}`,
+        );
+        if (pollBtn) {
+          pollBtn.disabled = isBusy;
         }
       }
 
@@ -951,6 +1009,20 @@ async function render(forceScroll = false) {
                 'id': `task-restart-text-${task.name}`,
               }, task.status === 'STOPPED' ? 'Start' : 'Restart'),
             ]),
+          ].concat(task.git ? [
+            el('button', {
+              'id': `task-poll-btn-${task.name}`,
+              'class': 'uk-button uk-button-default task-btn',
+              'title': 'Force poll Git repository for new commits and restart',
+              'disabled': isBusy,
+              'onclick': () => {
+                handlePollUpdates(task.name);
+              },
+            }, [
+              el('span', {'uk-icon': 'icon: cloud-download; ratio: 0.85'}),
+              el('span', {'id': `task-poll-text-${task.name}`}, 'Force Poll'),
+            ]),
+          ] : []).concat([
             el('button', {
               'id': `task-edit-btn-${task.name}`,
               'class': 'uk-button uk-button-default task-btn',
@@ -973,7 +1045,7 @@ async function render(forceScroll = false) {
               el('span', {'uk-icon': 'icon: trash; ratio: 0.85'}),
               el('span', {}, 'Delete'),
             ]),
-          ]),
+          ])),
         ]),
 
         el('div', {'class': 'log-preview-section uk-margin-small-top'}, [

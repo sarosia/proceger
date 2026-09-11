@@ -74,4 +74,28 @@ describe('App', function() {
       await new Promise((resolve) => server.close(resolve));
     }
   });
+
+  it('triggers pollUpdates on /task/:name/poll', async () => {
+    const taskManager = sinon.createStubInstance(TaskManager);
+    const mockTask = {
+      getName: () => 'my-task',
+      pollUpdates: sinon.stub().resolves(true),
+    };
+    taskManager.getTask.withArgs('my-task').returns(mockTask);
+    const app = createApp(taskManager, {
+      port: 0,
+      auth: {enabled: false},
+    });
+    const server = await app.start();
+    const port = server.address().port;
+    try {
+      const res = await fetch(`http://localhost:${port}/task/my-task/poll`);
+      const body = await res.json();
+      body.status.should.equal('OK');
+      body.updated.should.equal(true);
+      mockTask.pollUpdates.calledOnce.should.equal(true);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
 });
