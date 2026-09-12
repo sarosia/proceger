@@ -1,5 +1,5 @@
 import e from './e.js';
-import { escapeHtml, toast } from './apper-ui.js';
+import {escapeHtml, toast} from './apper-ui.js';
 
 let actionInProgress = false;
 let currentTaskStructureKey = '';
