@@ -1,4 +1,5 @@
 import e from './e.js';
+import { escapeHtml, toast } from './apper-ui.js';
 
 let actionInProgress = false;
 let currentTaskStructureKey = '';
@@ -12,19 +13,6 @@ let currentTaskStructureKey = '';
  */
 function el(type, attrs = {}, children) {
   return [type, attrs, children];
-}
-
-/**
- * Escapes HTML entities for safe rendering.
- * @param {string} str Input string.
- * @return {string} Escaped string.
- */
-function escapeHtml(str) {
-  return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
 }
 
 /**
@@ -236,27 +224,21 @@ async function handlePollUpdates(taskName) {
       throw new Error(data.error || `HTTP ${res.status}`);
     }
 
-    if (window.UIkit && window.UIkit.notification) {
-      const isUpdated = Boolean(data.updated);
-      window.UIkit.notification({
-        message: isUpdated ?
+    const isUpdated = Boolean(data.updated);
+    toast(
+        isUpdated ?
           `New git updates found! Task "${taskName}" restarting.` :
           `Task "${taskName}" is already up to date.`,
-        status: isUpdated ? 'success' : 'primary',
-        pos: 'top-center',
-        timeout: 3500,
-      });
-    }
+        isUpdated ? 'success' : 'primary',
+        {pos: 'top-center', timeout: 3500},
+    );
   } catch (err) {
     console.error(`Failed to poll updates for ${taskName}:`, err);
-    if (window.UIkit && window.UIkit.notification) {
-      window.UIkit.notification({
-        message: `Failed to check updates: ${err.message}`,
-        status: 'danger',
-        pos: 'top-center',
-        timeout: 4000,
-      });
-    }
+    toast(
+        `Failed to check updates: ${err.message}`,
+        'danger',
+        {pos: 'top-center', timeout: 4000},
+    );
   } finally {
     actionInProgress = false;
     await render(true);
@@ -393,16 +375,13 @@ async function handleTaskFormSubmit(evt) {
     if (window.UIkit && window.UIkit.modal) {
       window.UIkit.modal('#modal-task').hide();
     }
-    if (window.UIkit && window.UIkit.notification) {
-      window.UIkit.notification({
-        message: isEdit ?
+    toast(
+        isEdit ?
           `Task "${name}" updated in NotableDB and restarted!` :
           `Task "${name}" created and saved in NotableDB!`,
-        status: 'success',
-        pos: 'top-center',
-        timeout: 3000,
-      });
-    }
+        'success',
+        {pos: 'top-center', timeout: 3000},
+    );
     selectTask(name);
     await render(true);
   } catch (err) {
@@ -433,14 +412,11 @@ async function handleDeleteTask(taskName) {
       throw new Error(errJson.error || `HTTP ${res.status}`);
     }
 
-    if (window.UIkit && window.UIkit.notification) {
-      window.UIkit.notification({
-        message: `Task "${taskName}" removed from NotableDB.`,
-        status: 'primary',
-        pos: 'top-center',
-        timeout: 3000,
-      });
-    }
+    toast(
+        `Task "${taskName}" removed from NotableDB.`,
+        'primary',
+        {pos: 'top-center', timeout: 3000},
+    );
 
     const saved = getState();
     if (saved.task === taskName) {
@@ -541,62 +517,6 @@ async function copyLogText(logText, btn) {
     }, 1500);
   } catch (err) {
     console.error('Failed to copy logs:', err);
-  }
-}
-
-/**
- * Renders the user profile avatar button with dropdown for sign out.
- * @param {Object} user User object from /auth/me.
- */
-function renderUserProfile(user) {
-  const container = document.getElementById('user-profile');
-  if (!container) return;
-
-  const displayName = user.name || user.email || 'User';
-  const initial = (displayName || 'U').charAt(0).toUpperCase();
-  const avatarHtml = user.picture ?
-    `<img src="${escapeHtml(user.picture)}" alt="Profile" ` +
-    `class="user-avatar-img" />` :
-    `<div class="user-avatar-fallback">${escapeHtml(initial)}</div>`;
-
-  container.innerHTML = `
-    <div class="uk-inline">
-      <button class="user-avatar-btn" type="button" ` +
-        `aria-label="Account: ${escapeHtml(displayName)}" ` +
-        `title="${escapeHtml(displayName)} (${escapeHtml(user.email)})">
-        ${avatarHtml}
-      </button>
-      <div uk-dropdown="mode: click; pos: bottom-right; offset: 8" ` +
-        `class="user-dropdown-card">
-        <a href="/auth/logout" ` +
-          `class="uk-button uk-button-small uk-width-1-1 ` +
-          `user-dropdown-logout-btn">
-          <span uk-icon="icon: sign-out; ratio: 0.8" ` +
-            `class="uk-margin-small-right"></span>Sign Out
-        </a>
-      </div>
-    </div>
-  `;
-}
-
-/**
- * Loads current authenticated user profile from /auth/me.
- */
-async function loadCurrentUser() {
-  try {
-    const res = await fetch('/auth/me');
-    if (res.status === 401) {
-      window.location.href = '/login';
-      return;
-    }
-    if (res.ok) {
-      const data = await res.json();
-      if (data.user) {
-        renderUserProfile(data.user);
-      }
-    }
-  } catch (err) {
-    console.error('Failed to load current user:', err);
   }
 }
 
@@ -1148,7 +1068,6 @@ async function render(forceScroll = false) {
 }
 
 window.onload = async function() {
-  await loadCurrentUser();
   await render(true);
 
   window.addEventListener('hashchange', () => {
