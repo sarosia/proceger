@@ -4,6 +4,7 @@ const chai = require('chai');
 const path = require('path');
 const sinon = require('sinon');
 chai.should();
+const {expect} = chai;
 
 const Task = require('../lib/task');
 const Git = require('../lib/git');
@@ -70,6 +71,7 @@ describe('Task', function() {
       'startTime': null,
       'status': 'IDLE',
       'code': null,
+      'enabled': true,
     });
 
     try {
@@ -96,6 +98,7 @@ describe('Task', function() {
         'revision': null,
         'status': 'STOPPED',
         'code': 'SIGTERM',
+        'enabled': true,
       });
     }
   }).timeout(10 * 1000);
@@ -120,7 +123,18 @@ describe('Task', function() {
       'status': 'IDLE',
       'startTime': null,
       'code': null,
+      'enabled': true,
     });
+  });
+
+  it('supports initializing disabled task', async () => {
+    const git = createGitStub();
+    const task = new Task({name: 'repo1', enabled: false}, git, 1000);
+    expect(task.isEnabled()).to.be.false;
+    expect(task.getStatus()).to.equal('STOPPED');
+    const json = await task.toJson();
+    expect(json.enabled).to.be.false;
+    expect(json.status).to.equal('STOPPED');
   });
 
   it('restart', async () => {

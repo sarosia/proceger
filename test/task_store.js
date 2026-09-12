@@ -115,4 +115,22 @@ describe('TaskStore with notabledb', () => {
     expect(await store.listTasks()).to.have.lengthOf(0);
     expect(await store.getTask('temp-service')).to.be.null;
   });
+
+  it('supports enabled flag when adding and updating', async () => {
+    const task = await store.addTask({
+      name: 'service',
+      git: 'git@github.com:example/service.git',
+      enabled: false,
+    });
+    expect(task.enabled).to.equal(false);
+
+    const retrieved = await store.getTask('service');
+    expect(retrieved.enabled).to.equal(false);
+
+    const updated = await store.updateTask('service', {enabled: true});
+    expect(updated.enabled).to.equal(true);
+
+    const retrieved2 = await store.getTask('service');
+    expect(retrieved2.enabled).to.equal(true);
+  });
 });
