@@ -60,10 +60,10 @@ describe('Task', function() {
       'git': 'git@github.com:sarosia/repo1.git',
       'command': 'npm start',
       'env': {},
-      'logs': {
-        'stdout.log': 'log1\nlog2\nlog3\n',
-        'stderr.log': 'log1\nlog2\nlog3\n',
-      },
+      'logs': [
+        'stderr.log',
+        'stdout.log',
+      ],
       'name': 'repo1',
       'path': repo1Path,
       'pid': -1,
@@ -88,10 +88,10 @@ describe('Task', function() {
         'git': 'git@github.com:sarosia/repo1.git',
         'command': 'npm start',
         'env': {},
-        'logs': {
-          'stdout.log': 'log1\nlog2\nlog3\n',
-          'stderr.log': 'log1\nlog2\nlog3\n',
-        },
+        'logs': [
+          'stderr.log',
+          'stdout.log',
+        ],
         'name': 'repo1',
         'path': repo1Path,
         'pid': -1,
@@ -112,10 +112,10 @@ describe('Task', function() {
       'git': 'git@github.com:sarosia/repo1.git',
       'command': 'npm start',
       'env': {},
-      'logs': {
-        'stdout.log': 'log1\nlog2\nlog3\n',
-        'stderr.log': 'log1\nlog2\nlog3\n',
-      },
+      'logs': [
+        'stderr.log',
+        'stdout.log',
+      ],
       'name': 'repo1',
       'path': repo1Path,
       'pid': -1,
@@ -289,12 +289,11 @@ describe('Task', function() {
     error.message.should.equal('Invalid log filename.');
   });
 
-  it('omits log file contents in toJson when includeLogs is false',
+  it('omits log file contents in toJson and returns log filenames',
       async () => {
         const git = createGitStub();
         const task = new Task({name: 'repo1'}, git, 1000);
-        const json = await task.toJson({includeLogs: false});
-        json.logs.should.have.property('stdout.log', null);
-        json.logs.should.have.property('stderr.log', null);
+        const json = await task.toJson();
+        json.logs.should.deep.equal(['stderr.log', 'stdout.log']);
       });
 });

@@ -474,6 +474,17 @@ function getLogOpenUrl(taskName, logName) {
   return `/log.html?task=${encTask}&log=${encodeURIComponent(logName)}`;
 }
 
+/**
+ * Returns available log filenames for a task.
+ * @param {Object} task Task object.
+ * @return {Array<string>} List of log filenames.
+ */
+function getTaskLogFiles(task) {
+  if (!task || !task.logs) return [];
+  if (Array.isArray(task.logs)) return task.logs;
+  return Object.keys(task.logs);
+}
+
 const logPreviewCache = new Map();
 const inFlightLogFetches = new Map();
 
@@ -692,7 +703,7 @@ async function render(forceScroll = false) {
   }
   const activeTask = tasks[activeTaskIndex];
 
-  const finalLogFiles = Object.keys(activeTask.logs || {});
+  const finalLogFiles = getTaskLogFiles(activeTask);
   let finalLog = null;
   if (savedState.log && finalLogFiles.includes(savedState.log)) {
     finalLog = savedState.log;
@@ -703,7 +714,7 @@ async function render(forceScroll = false) {
 
   const structureKey = tasks.map((t) =>
     `${t.name}:${t.command || 'npm start'}:${Boolean(t.git)}:` +
-    `${Object.keys(t.logs || {}).join(',')}`,
+    `${getTaskLogFiles(t).join(',')}`,
   ).join('|');
 
   if (currentTaskStructureKey === structureKey) {
@@ -724,7 +735,7 @@ async function render(forceScroll = false) {
     for (let taskIdx = 0; taskIdx < tasks.length; taskIdx++) {
       const task = tasks[taskIdx];
       const isTaskActive = taskIdx === activeTaskIndex;
-      const logFiles = Object.keys(task.logs || {});
+      const logFiles = getTaskLogFiles(task);
 
       let activeLogIndex = -1;
       if (isTaskActive && finalLog) {
@@ -894,7 +905,7 @@ async function render(forceScroll = false) {
 
     e('tasks-content', {}, tasks.map((task, taskIdx) => {
       const isTaskActive = taskIdx === activeTaskIndex;
-      const logFiles = Object.keys(task.logs || {});
+      const logFiles = getTaskLogFiles(task);
 
       let activeLogIndex = -1;
       if (isTaskActive && finalLog) {

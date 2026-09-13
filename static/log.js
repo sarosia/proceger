@@ -217,8 +217,8 @@ function renderLogTabs(task) {
   const tabsContainer = document.getElementById('log-tabs');
   if (!tabsContainer) return;
 
-  const logsObj = task.logs || {};
-  const logFiles = Object.keys(logsObj);
+  const logFiles = Array.isArray(task.logs) ?
+    task.logs : Object.keys(task.logs || {});
 
   if (logFiles.length === 0) {
     tabsContainer.innerHTML =
