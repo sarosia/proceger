@@ -474,6 +474,113 @@ function getLogOpenUrl(taskName, logName) {
   return `/log.html?task=${encTask}&log=${encodeURIComponent(logName)}`;
 }
 
+const logPreviewCache = new Map();
+const inFlightLogFetches = new Map();
+
+/**
+ * Fetches log preview data for a specific task and filename.
+ * @param {string} taskName Task name.
+ * @param {string} logFile Log filename.
+ * @return {Promise<Object|null>} Log data object.
+ */
+async function fetchLogPreview(taskName, logFile) {
+  if (!taskName || !logFile) return null;
+  const key = `${taskName}:${logFile}`;
+  if (inFlightLogFetches.has(key)) {
+    return inFlightLogFetches.get(key);
+  }
+  const promise = (async () => {
+    try {
+      const res = await fetch(
+          `/task/${encodeURIComponent(taskName)}/log/` +
+          `${encodeURIComponent(logFile)}?tail=15`,
+      );
+      if (res.status === 401) {
+        window.location.href = '/login';
+        return null;
+      }
+      if (!res.ok) return null;
+      const data = await res.json();
+      logPreviewCache.set(key, data);
+      return data;
+    } catch (err) {
+      console.error(`Failed to fetch log for ${taskName}/${logFile}:`, err);
+      return null;
+    } finally {
+      inFlightLogFetches.delete(key);
+    }
+  })();
+  inFlightLogFetches.set(key, promise);
+  return promise;
+}
+
+/**
+ * Applies log preview data to the task's log terminal.
+ * @param {string} taskName Task name.
+ * @param {?string} activeLog Active log filename.
+ */
+async function applyLogPreview(taskName, activeLog) {
+  if (!taskName || !activeLog) {
+    const countElm = document.getElementById(`log-count-${taskName}`);
+    if (countElm) countElm.textContent = 'No logs';
+    const logBody = document.getElementById(`log-body-${taskName}`);
+    if (logBody) renderLogLinesInto(logBody, '');
+    return;
+  }
+  const key = `${taskName}:${activeLog}`;
+  const cached = logPreviewCache.get(key);
+  const countElm = document.getElementById(`log-count-${taskName}`);
+  const logBody = document.getElementById(`log-body-${taskName}`);
+  const openBtn = document.getElementById(`log-open-btn-${taskName}`);
+
+  if (openBtn) {
+    openBtn.href = getLogOpenUrl(taskName, activeLog);
+  }
+
+  if (cached) {
+    const total = cached.totalLines ?? 0;
+    const last10 = getLastLogLines(cached.content || '', 10);
+    if (countElm) {
+      countElm.textContent =
+        `${activeLog} (last ${last10.length} of ${total} entries)`;
+    }
+    const last10Text = last10.join('\n');
+    if (logBody && logBody._previewText !== last10Text) {
+      logBody._previewText = last10Text;
+      renderLogLinesInto(logBody, last10Text);
+      logBody.scrollTop = logBody.scrollHeight;
+    }
+  } else if (logBody && !logBody._previewText) {
+    if (countElm) {
+      countElm.textContent = `${activeLog} (loading...)`;
+    }
+    logBody.innerHTML = '<p class="empty-log">Loading log preview...</p>';
+  }
+
+  const data = await fetchLogPreview(taskName, activeLog);
+  if (!data) return;
+
+  const currentSaved = getState();
+  if (currentSaved.task && currentSaved.task !== taskName) {
+    return;
+  }
+
+  const freshTotal = data.totalLines ?? 0;
+  const freshLast10 = getLastLogLines(data.content || '', 10);
+  const freshCountElm = document.getElementById(`log-count-${taskName}`);
+  if (freshCountElm) {
+    freshCountElm.textContent =
+      `${activeLog} (last ${freshLast10.length} of ${freshTotal} entries)`;
+  }
+  const freshText = freshLast10.join('\n');
+  const freshBody = document.getElementById(`log-body-${taskName}`);
+  if (freshBody && freshBody._previewText !== freshText) {
+    freshBody._previewText = freshText;
+    renderLogLinesInto(freshBody, freshText);
+    freshBody.scrollTop = freshBody.scrollHeight;
+  }
+}
+
 /**
  * Selects an active task and renders the UI.
  * @param {string} taskName Task name to select.
@@ -483,6 +590,9 @@ function selectTask(taskName, preferredLog = null) {
   const currentScrollY = window.scrollY;
   saveState(taskName, preferredLog);
   render(false);
+  if (preferredLog) {
+    applyLogPreview(taskName, preferredLog);
+  }
   if (window.scrollY !== currentScrollY) {
     window.scrollTo(window.scrollX, currentScrollY);
   }
@@ -497,6 +607,7 @@ function selectLog(taskName, logName) {
   const currentScrollY = window.scrollY;
   saveState(taskName, logName);
   render(false);
+  applyLogPreview(taskName, logName);
   if (window.scrollY !== currentScrollY) {
     window.scrollTo(window.scrollX, currentScrollY);
   }
@@ -726,12 +837,6 @@ async function render(forceScroll = false) {
       }
 
       const activeLog = logFiles[activeLogIndex] || null;
-      const activeLogsText = activeLog ?
-          ((task.logs || {})[activeLog] || '') : '';
-      const totalLines = activeLogsText ?
-          activeLogsText.split('\n').filter(Boolean).length : 0;
-      const last10Lines = getLastLogLines(activeLogsText, 10);
-      const last10Text = last10Lines.join('\n');
 
       for (let logIdx = 0; logIdx < logFiles.length; logIdx++) {
         const filename = logFiles[logIdx];
@@ -744,26 +849,13 @@ async function render(forceScroll = false) {
         }
       }
 
-      const countElm = document.getElementById(`log-count-${task.name}`);
-      if (countElm) {
-        const previewCount = last10Lines.length;
-        countElm.textContent = activeLog ?
-            `${activeLog} (last ${previewCount} of ${totalLines} entries)` :
-            'No logs';
-      }
-
       const openBtn = document.getElementById(`log-open-btn-${task.name}`);
       if (openBtn) {
         openBtn.href = getLogOpenUrl(task.name, activeLog);
       }
 
-      const logBody = document.getElementById(`log-body-${task.name}`);
-      if (logBody) {
-        if (logBody._previewText !== last10Text) {
-          logBody._previewText = last10Text;
-          renderLogLinesInto(logBody, last10Text);
-          logBody.scrollTop = logBody.scrollHeight;
-        }
+      if (isTaskActive) {
+        applyLogPreview(task.name, activeLog);
       }
     }
   } else {
@@ -813,11 +905,6 @@ async function render(forceScroll = false) {
       }
 
       const activeLog = logFiles[activeLogIndex] || null;
-      const activeLogsText = activeLog ?
-          ((task.logs || {})[activeLog] || '') : '';
-      const totalLines = activeLogsText ?
-          activeLogsText.split('\n').filter(Boolean).length : 0;
-      const last10Lines = getLastLogLines(activeLogsText, 10);
 
       const statusClass = getStatusClass(task.status);
       const isRunning = task.status === 'RUNNING';
@@ -996,10 +1083,7 @@ async function render(forceScroll = false) {
               el('span', {
                 'id': `log-count-${task.name}`,
                 'class': 'logs-filename',
-              }, activeLog ?
-                  `${activeLog} (last ${last10Lines.length} of ` +
-                  `${totalLines} entries)` :
-                  'No logs'),
+              }, activeLog ? activeLog : 'No logs'),
               el('div', {'class': 'logs-toolbar-actions'}, [
                 el('button', {
                   'class': 'terminal-btn',
@@ -1039,27 +1123,7 @@ async function render(forceScroll = false) {
       ]);
     }));
 
-    // Populate preview log bodies with the last 10 lines.
-    for (const task of tasks) {
-      const logFiles = Object.keys(task.logs || {});
-      let activeLogIndex = -1;
-      if (task.name === activeTask.name && finalLog) {
-        activeLogIndex = logFiles.indexOf(finalLog);
-      }
-      if (activeLogIndex === -1) {
-        activeLogIndex = logFiles.length > 0 ? logFiles.length - 1 : 0;
-      }
-      const activeLog = logFiles[activeLogIndex] || null;
-      const activeLogsText = activeLog ?
-          ((task.logs || {})[activeLog] || '') : '';
-      const last10Text = getLastLogLines(activeLogsText, 10).join('\n');
-      const logBody = document.getElementById(`log-body-${task.name}`);
-      if (logBody) {
-        logBody._previewText = last10Text;
-        renderLogLinesInto(logBody, last10Text);
-        logBody.scrollTop = logBody.scrollHeight;
-      }
-    }
+    applyLogPreview(activeTask.name, finalLog);
   }
 
   if (window.UIkit && window.UIkit.update) {

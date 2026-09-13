@@ -181,6 +181,34 @@ function scrollToBottom() {
   }
 }
 
+const logCounts = {};
+let logFetchInProgress = false;
+
+/**
+ * Fetches log content for a specific task and filename.
+ * @param {string} taskName Task name.
+ * @param {string} filename Log filename.
+ * @return {Promise<Object|null>} Log data object.
+ */
+async function fetchLogFile(taskName, filename) {
+  if (!taskName || !filename) return null;
+  try {
+    const res = await fetch(
+        `/task/${encodeURIComponent(taskName)}/log/` +
+        `${encodeURIComponent(filename)}`,
+    );
+    if (res.status === 401) {
+      window.location.href = '/login';
+      return null;
+    }
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    console.error(`Failed to fetch log for ${taskName}/${filename}:`, err);
+    return null;
+  }
+}
+
 /**
  * Renders task log tabs and updates active selection.
  * @param {Object} task Task object.
@@ -205,29 +233,68 @@ function renderLogTabs(task) {
 
   tabsContainer.innerHTML = '';
   for (const filename of logFiles) {
-    const raw = logsObj[filename] || '';
-    const lineCount = raw ? raw.split('\n').filter(Boolean).length : 0;
+    const countKey = `${task.name}:${filename}`;
+    const lineCount =
+        logCounts[countKey] !== undefined ? logCounts[countKey] : '-';
     const isActive = filename === currentLogName;
 
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = `log-tab-btn${isActive ? ' active' : ''}`;
+    btn.id = `log-tab-${filename.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
     btn.innerHTML =
         `<span>${escapeHtml(filename)}</span>` +
         `<span class="log-tab-count">${lineCount}</span>`;
 
-    btn.onclick = () => {
+    btn.onclick = async () => {
       if (currentLogName !== filename) {
         currentLogName = filename;
-        currentRawLogs = (task.logs || {})[filename] || '';
+        currentRawLogs = '';
         userScrolledUp = false;
         renderLogTabs(task);
         renderLogContent(false);
         updateUrlParams();
+        await loadActiveLogContent(task.name, currentLogName, false);
       }
     };
 
     tabsContainer.appendChild(btn);
+  }
+}
+
+/**
+ * Loads active log file content and updates viewer and tab line count.
+ * @param {string} taskName Task name.
+ * @param {string} logName Log filename.
+ * @param {boolean} isPolling Whether this is a background poll.
+ */
+async function loadActiveLogContent(taskName, logName, isPolling = false) {
+  if (!taskName || !logName) return;
+  if (logFetchInProgress && isPolling) return;
+  logFetchInProgress = true;
+  try {
+    const data = await fetchLogFile(taskName, logName);
+    if (!data) return;
+    if (currentTaskName !== taskName || currentLogName !== logName) return;
+
+    const countKey = `${taskName}:${logName}`;
+    logCounts[countKey] = data.totalLines ?? 0;
+
+    const tabElm = document.getElementById(
+        `log-tab-${logName.replace(/[^a-zA-Z0-9_-]/g, '_')}`,
+    );
+    if (tabElm) {
+      const countSpan = tabElm.querySelector('.log-tab-count');
+      if (countSpan) countSpan.textContent = logCounts[countKey];
+    }
+
+    const newLogs = data.content || '';
+    if (newLogs !== currentRawLogs || !isPolling) {
+      currentRawLogs = newLogs;
+      renderLogContent(isPolling);
+    }
+  } finally {
+    logFetchInProgress = false;
   }
 }
 
@@ -312,14 +379,9 @@ async function loadTaskLogs(isPolling = false) {
   }
 
   renderLogTabs(task);
-
-  const newLogs = (task.logs || {})[currentLogName] || '';
-  if (newLogs !== currentRawLogs || !isPolling) {
-    currentRawLogs = newLogs;
-    renderLogContent(isPolling);
-  }
-
   updateUrlParams();
+
+  await loadActiveLogContent(currentTaskName, currentLogName, isPolling);
 }
 
 /**

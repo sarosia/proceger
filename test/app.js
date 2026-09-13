@@ -98,4 +98,59 @@ describe('App', function() {
       await new Promise((resolve) => server.close(resolve));
     }
   });
+
+  it('serves task log content via /task/:name/log/:filename', async () => {
+    const taskManager = sinon.createStubInstance(TaskManager);
+    const mockTask = {
+      getName: () => 'my-task',
+      getLogContent: sinon.stub().resolves({
+        filename: 'stdout.log',
+        content: 'line 1\nline 2\n',
+        totalLines: 2,
+      }),
+    };
+    taskManager.getTask.withArgs('my-task').returns(mockTask);
+    const app = createApp(taskManager, {
+      port: 0,
+      auth: {enabled: false},
+    });
+    const server = await app.start();
+    const port = server.address().port;
+    try {
+      const res = await fetch(
+          `http://localhost:${port}/task/my-task/log/stdout.log?tail=5`,
+      );
+      res.status.should.equal(200);
+      const data = await res.json();
+      data.filename.should.equal('stdout.log');
+      data.totalLines.should.equal(2);
+      mockTask.getLogContent.calledWith('stdout.log', {tail: 5})
+          .should.equal(true);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
+
+  it('returns 404 when log file is not found', async () => {
+    const taskManager = sinon.createStubInstance(TaskManager);
+    const mockTask = {
+      getName: () => 'my-task',
+      getLogContent: sinon.stub().resolves(null),
+    };
+    taskManager.getTask.withArgs('my-task').returns(mockTask);
+    const app = createApp(taskManager, {
+      port: 0,
+      auth: {enabled: false},
+    });
+    const server = await app.start();
+    const port = server.address().port;
+    try {
+      const res = await fetch(
+          `http://localhost:${port}/task/my-task/log/unknown.log`,
+      );
+      res.status.should.equal(404);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
 });

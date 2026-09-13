@@ -253,4 +253,48 @@ describe('Task', function() {
     json.status.should.equal('STOPPED');
     json.code.should.equal('ENOENT');
   });
+
+  it('discovers log files with getLogFiles', async () => {
+    const git = createGitStub();
+    const task = new Task({name: 'repo1'}, git, 1000);
+    const files = await task.getLogFiles();
+    files.should.include('stdout.log');
+    files.should.include('stderr.log');
+  });
+
+  it('reads single log file with getLogContent including tail', async () => {
+    const git = createGitStub();
+    const task = new Task({name: 'repo1'}, git, 1000);
+    const logData = await task.getLogContent('stdout.log');
+    logData.filename.should.equal('stdout.log');
+    logData.content.should.equal('log1\nlog2\nlog3\n');
+    logData.totalLines.should.equal(3);
+
+    const tailData = await task.getLogContent('stdout.log', {tail: 2});
+    tailData.filename.should.equal('stdout.log');
+    tailData.content.should.equal('log3\n');
+    tailData.totalLines.should.equal(3);
+  });
+
+  it('rejects path traversal in getLogContent', async () => {
+    const git = createGitStub();
+    const task = new Task({name: 'repo1'}, git, 1000);
+    let error;
+    try {
+      await task.getLogContent('../../../etc/passwd');
+    } catch (err) {
+      error = err;
+    }
+    expect(error).to.exist;
+    error.message.should.equal('Invalid log filename.');
+  });
+
+  it('omits log file contents in toJson when includeLogs is false',
+      async () => {
+        const git = createGitStub();
+        const task = new Task({name: 'repo1'}, git, 1000);
+        const json = await task.toJson({includeLogs: false});
+        json.logs.should.have.property('stdout.log', null);
+        json.logs.should.have.property('stderr.log', null);
+      });
 });
