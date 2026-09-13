@@ -237,4 +237,20 @@ describe('Task', function() {
       await task.stop();
     }
   });
+
+  it('gracefully handles non-existent path without crashing', async () => {
+    const nonExistentPath = path.join(workspace, 'does-not-exist-dir');
+    const task = new Task({
+      name: 'broken-task',
+      path: nonExistentPath,
+      command: 'npm start',
+    }, null, 1000);
+
+    await task.start();
+
+    task.getStatus().should.equal('STOPPED');
+    const json = await task.toJson();
+    json.status.should.equal('STOPPED');
+    json.code.should.equal('ENOENT');
+  });
 });

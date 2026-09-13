@@ -165,4 +165,25 @@ describe('TaskManager with real Task and TaskStore', () => {
         await taskManager.restartTaskByName('worker');
         expect((await store.getTask('worker')).enabled).to.equal(true);
       });
+
+  it('continues loading other tasks if one task fails to start', async () => {
+    startStub.onFirstCall().rejects(new Error('Spawn failed'));
+    startStub.onSecondCall().resolves();
+
+    await store.addTask({
+      name: 'broken-task',
+      path: '/tmp',
+      enabled: true,
+    });
+    await store.addTask({
+      name: 'working-task',
+      path: '/tmp',
+      enabled: true,
+    });
+
+    await taskManager.loadFromConfig({workspace: '/tmp'});
+
+    expect(taskManager.getTask('broken-task')).to.exist;
+    expect(taskManager.getTask('working-task')).to.exist;
+  });
 });
