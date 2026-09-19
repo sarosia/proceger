@@ -186,4 +186,22 @@ describe('TaskManager with real Task and TaskStore', () => {
     expect(taskManager.getTask('broken-task')).to.exist;
     expect(taskManager.getTask('working-task')).to.exist;
   });
+
+  it('stops all tasks with stopAllTasks', async () => {
+    await store.addTask({
+      name: 'task1',
+      path: '/tmp',
+      enabled: true,
+    });
+    await store.addTask({
+      name: 'task2',
+      path: '/tmp',
+      enabled: true,
+    });
+
+    await taskManager.loadFromConfig({workspace: '/tmp'});
+    await taskManager.stopAllTasks();
+
+    expect(stopStub.calledTwice).to.be.true;
+  });
 });

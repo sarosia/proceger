@@ -150,7 +150,19 @@ describe('App', function() {
       );
       res.status.should.equal(404);
     } finally {
-      await new Promise((resolve) => server.close(resolve));
+      await app.stop();
     }
+  });
+
+  it('stops all tasks on app.stop()', async () => {
+    const taskManager = sinon.createStubInstance(TaskManager);
+    taskManager.stopAllTasks = sinon.stub().resolves();
+    const app = createApp(taskManager, {
+      port: 0,
+      auth: {enabled: false},
+    });
+    await app.start();
+    await app.stop();
+    taskManager.stopAllTasks.calledOnce.should.equal(true);
   });
 });
