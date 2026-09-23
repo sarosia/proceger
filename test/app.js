@@ -165,4 +165,96 @@ describe('App', function() {
     await app.stop();
     taskManager.stopAllTasks.calledOnce.should.equal(true);
   });
+
+  it('does not create adminServer when adminPort is not specified', () => {
+    const taskManager = sinon.createStubInstance(TaskManager);
+    const app = createApp(taskManager);
+    chai.expect(app.getAdminServer()).to.be.null;
+    chai.expect(app.getAdminPort()).to.be.null;
+  });
+
+  it('serves unauthenticated requests on adminPort while main port ' +
+     'requires auth', async () => {
+    const taskManager = sinon.createStubInstance(TaskManager);
+    taskManager.getAllTasks.returns([]);
+    const app = createApp(taskManager, {
+      port: 0,
+      adminPort: 0,
+      auth: {
+        enabled: true,
+        clientId: 'mock-client-id',
+        clientSecret: 'mock-client-secret',
+      },
+    });
+    const server = await app.start();
+    const mainPort = server.address().port;
+    const adminPort = app.getAdminPort();
+    adminPort.should.be.a('number');
+    adminPort.should.not.equal(mainPort);
+    chai.expect(app.getAdminServer()).to.not.be.null;
+
+    try {
+      // Main port with auth enabled should redirect or return 302/401
+      const mainRes = await fetch(`http://localhost:${mainPort}/task/list`, {
+        redirect: 'manual',
+      });
+      (mainRes.status === 302 || mainRes.status === 401).should.equal(true);
+
+      // Admin port should serve /task/list without auth (200 OK)
+      const adminRes = await fetch(`http://localhost:${adminPort}/task/list`);
+      adminRes.status.should.equal(200);
+      const tasks = await adminRes.json();
+      tasks.should.be.an('array');
+      tasks.length.should.equal(1);
+      tasks[0].name.should.equal('proceger');
+
+      // Admin port /auth/me returns unauthenticated
+      const meRes = await fetch(`http://localhost:${adminPort}/auth/me`);
+      const meBody = await meRes.json();
+      meBody.authenticated.should.equal(false);
+
+      // Admin port /auth/config returns enabled: false
+      const configRes = await fetch(
+          `http://localhost:${adminPort}/auth/config`,
+      );
+      const configBody = await configRes.json();
+      configBody.enabled.should.equal(false);
+    } finally {
+      await app.stop();
+      chai.expect(app.getAdminServer()).to.be.null;
+    }
+  });
+
+  it('restarts task via adminPort without auth', async () => {
+    const taskManager = sinon.createStubInstance(TaskManager);
+    const mockTask = {
+      getName: () => 'test-task',
+    };
+    taskManager.getTask.withArgs('test-task').returns(mockTask);
+    taskManager.restartTaskByName = sinon.stub().resolves();
+    const app = createApp(taskManager, {
+      port: 0,
+      adminPort: 0,
+      auth: {
+        enabled: true,
+        clientId: 'mock-client-id',
+        clientSecret: 'mock-client-secret',
+      },
+    });
+    await app.start();
+    const adminPort = app.getAdminPort();
+
+    try {
+      const res = await fetch(
+          `http://localhost:${adminPort}/task/test-task/restart`,
+      );
+      res.status.should.equal(200);
+      const body = await res.text();
+      body.should.equal('OK');
+      taskManager.restartTaskByName.calledWith('test-task')
+          .should.equal(true);
+    } finally {
+      await app.stop();
+    }
+  });
 });

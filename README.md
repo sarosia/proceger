@@ -21,6 +21,7 @@ You need to first create a .procegerrc in the user home directory with the follo
 ```json
 {
   "port": 8080,
+  "adminPort": 8081,
   "workspace": "/path/to/your/workspace",
   "logDir": "/path/to/your/logs",
   "auth": {
@@ -52,6 +53,8 @@ $ proceger
 ```
 
 You can access the proceger webapp by browsing http://localhost:8080.
+
+If `adminPort` is configured, an unauthenticated admin interface is also available (e.g. `http://localhost:8081`), useful for operations within a firewall or private network without requiring OAuth login.
 
 ## License
 
