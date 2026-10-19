@@ -56,6 +56,8 @@ You can access the proceger webapp by browsing http://localhost:8080.
 
 If `adminPort` is configured, an unauthenticated admin interface is also available (e.g. `http://localhost:8081`), useful for operations within a firewall or private network without requiring OAuth login.
 
+For documentation on programmatic service management, endpoints (`/task/list`, `/task/:name/restart`, etc.), and agent integration examples, see [ADMIN_API.md](ADMIN_API.md).
+
 ## License
 
 [MIT](LICENSE)

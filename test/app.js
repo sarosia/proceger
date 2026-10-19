@@ -253,6 +253,14 @@ describe('App', function() {
       body.should.equal('OK');
       taskManager.restartTaskByName.calledWith('test-task')
           .should.equal(true);
+
+      const postRes = await fetch(
+          `http://localhost:${adminPort}/task/test-task/restart`,
+          {method: 'POST'},
+      );
+      postRes.status.should.equal(200);
+      const postBody = await postRes.text();
+      postBody.should.equal('OK');
     } finally {
       await app.stop();
     }
