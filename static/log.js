@@ -68,29 +68,36 @@ function getQueryParams() {
 /**
  * Formats a log line into HTML string.
  * @param {string} line Raw line string.
- * @param {string} filter Optional filter keyword to highlight.
  * @return {string} Formatted HTML.
  */
-function formatLineHtml(line, filter = '') {
+function formatLineHtml(line) {
   let timeHtml = '';
+  let tagHtml = '';
   let msgHtml = '';
 
   try {
     const parsed = JSON.parse(line);
-    if (parsed && parsed.timestamp && parsed.message !== undefined) {
-      timeHtml =
-          `<span class="log-time">[${escapeHtml(parsed.timestamp)}]</span>`;
-      msgHtml = `<span class="log-msg">${escapeHtml(parsed.message)}</span>`;
+    if (parsed) {
+      if (parsed.timestamp) {
+        timeHtml =
+            `<span class="log-time">[${escapeHtml(parsed.timestamp)}]</span>`;
+      }
+      if (parsed.file) {
+        tagHtml = `<span class="log-tag-badge">${escapeHtml(parsed.file)}</span>`;
+      }
+      if (parsed.message !== undefined) {
+        msgHtml = `<span class="log-msg">${escapeHtml(parsed.message)}</span>`;
+      }
     }
-  } catch (err) {
+  } catch (_) {
     // Plain line formatting.
   }
 
-  if (!timeHtml) {
+  if (!timeHtml && !msgHtml) {
     msgHtml = `<span class="log-msg">${escapeHtml(line)}</span>`;
   }
 
-  return `<p>${timeHtml}${msgHtml}</p>`;
+  return `<p>${timeHtml}${tagHtml}${msgHtml}</p>`;
 }
 
 /**
@@ -123,9 +130,7 @@ function renderLogContent(preserveScroll = true) {
     visibleLines = allLines.filter((l) => l.toLowerCase().includes(q));
   }
 
-  const htmlParts = visibleLines.map((line) =>
-    formatLineHtml(line, currentFilterQuery),
-  );
+  const htmlParts = visibleLines.map((line) => formatLineHtml(line));
 
   container.innerHTML = htmlParts.join('');
 
@@ -220,35 +225,34 @@ function renderLogTabs(task) {
   const logFiles = Array.isArray(task.logs) ?
     task.logs : Object.keys(task.logs || {});
 
-  if (logFiles.length === 0) {
-    tabsContainer.innerHTML =
-        '<div style="padding: 10px 14px; font-size: 13px; color: #64748b;">' +
-        'No log files available</div>';
-    return;
-  }
+  const allTabs = [
+    {name: '__all__.log', label: 'All Logs (Merged)'},
+    ...logFiles.map((filename) => ({name: filename, label: filename})),
+  ];
 
-  if (!currentLogName || !logFiles.includes(currentLogName)) {
-    currentLogName = logFiles[logFiles.length - 1];
+  if (!currentLogName || (!logFiles.includes(currentLogName) &&
+      currentLogName !== '__all__.log')) {
+    currentLogName = '__all__.log';
   }
 
   tabsContainer.innerHTML = '';
-  for (const filename of logFiles) {
-    const countKey = `${task.name}:${filename}`;
+  for (const item of allTabs) {
+    const countKey = `${task.name}:${item.name}`;
     const lineCount =
         logCounts[countKey] !== undefined ? logCounts[countKey] : '-';
-    const isActive = filename === currentLogName;
+    const isActive = item.name === currentLogName;
 
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = `log-tab-btn${isActive ? ' active' : ''}`;
-    btn.id = `log-tab-${filename.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+    btn.id = `log-tab-${item.name.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
     btn.innerHTML =
-        `<span>${escapeHtml(filename)}</span>` +
+        `<span>${escapeHtml(item.label)}</span>` +
         `<span class="log-tab-count">${lineCount}</span>`;
 
     btn.onclick = async () => {
-      if (currentLogName !== filename) {
-        currentLogName = filename;
+      if (currentLogName !== item.name) {
+        currentLogName = item.name;
         currentRawLogs = '';
         userScrolledUp = false;
         renderLogTabs(task);
@@ -309,8 +313,11 @@ function updateUrlParams() {
   if (window.history && window.history.replaceState) {
     window.history.replaceState(null, '', newUrl);
   }
+  const displayLog = currentLogName === '__all__.log' ?
+    'All Logs (Merged)' :
+    (currentLogName || 'logs');
   document.title =
-      `[${currentTaskName || 'task'}] ${currentLogName || 'logs'} - Proceger`;
+      `[${currentTaskName || 'task'}] ${displayLog} - Proceger`;
 }
 
 /**

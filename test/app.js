@@ -131,6 +131,59 @@ describe('App', function() {
     }
   });
 
+  it('serves merged logs via /task/:name/log/__all__.log', async () => {
+    const taskManager = sinon.createStubInstance(TaskManager);
+    const mockTask = {
+      getName: () => 'my-task',
+      getLogContent: sinon.stub().resolves({
+        filename: 'All Logs (Merged)',
+        content: 'merged lines',
+        totalLines: 10,
+      }),
+    };
+    taskManager.getTask.withArgs('my-task').returns(mockTask);
+    const app = createApp(taskManager, {
+      port: 0,
+      auth: {enabled: false},
+    });
+    const server = await app.start();
+    const port = server.address().port;
+    try {
+      const res = await fetch(
+          `http://localhost:${port}/task/my-task/log/__all__.log?tail=15`,
+      );
+      res.status.should.equal(200);
+      const data = await res.json();
+      data.filename.should.equal('All Logs (Merged)');
+      mockTask.getLogContent.calledWith('__all__.log', {tail: 15})
+          .should.equal(true);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
+
+  it('serves proceger system merged logs via /task/proceger/log/__all__.log', async () => {
+    const taskManager = sinon.createStubInstance(TaskManager);
+    const app = createApp(taskManager, {
+      port: 0,
+      auth: {enabled: false},
+    });
+    const server = await app.start();
+    const port = server.address().port;
+    try {
+      const res = await fetch(
+          `http://localhost:${port}/task/proceger/log/__all__.log?tail=5`,
+      );
+      res.status.should.equal(200);
+      const data = await res.json();
+      data.filename.should.equal('All Logs (Merged)');
+      data.should.have.property('totalLines');
+      data.should.have.property('content');
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
+
   it('returns 404 when log file is not found', async () => {
     const taskManager = sinon.createStubInstance(TaskManager);
     const mockTask = {

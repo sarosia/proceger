@@ -1,6 +1,7 @@
 {
   "port": 9000,
-  "workspace": "/home/cmto/proceger-workspace",
+  "adminPort": 9001,
+  "workspace": "~/proceger-workspace",
   "logDir": "~/.proceger/logs",
   "auth": {
     "enabled": true,

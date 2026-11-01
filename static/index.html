@@ -4,17 +4,20 @@
     <meta charset="utf-8">
     <title>Proceger</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,500" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="css/uikit.min.css" />
     <link rel="stylesheet" href="apper-auth.css" />
     <link rel="stylesheet" href="apper-ui.css" />
-    <link href="main.css" rel="stylesheet" type="text/css">
+    <link href="main.css?v=20261031_02" rel="stylesheet" type="text/css">
     <script src="js/uikit.min.js"></script>
     <script src="js/uikit-icons.min.js"></script>
     <script src="apper-auth.js"></script>
-    <script type="module" src="app.js"></script>
+    <script type="module" src="app.js?v=20261031_02"></script>
   </head>
   <body>
     <div class="uk-container uk-container-center app-container">
@@ -38,12 +41,36 @@
         </div>
       </header>
 
-      <div class="tasks-tab-wrapper">
-        <ul id="tasks-tab" class="uk-tab" uk-tab="connect: #tasks-content">
-        </ul>
-      </div>
-      <ul id="tasks-content" class="uk-switcher uk-margin">
-      </ul>
+      <!-- VIEW: OVERVIEW / ENTRY PAGE -->
+      <section id="view-overview" class="view-container">
+        <div class="overview-filter-bar">
+          <div class="search-box-wrapper">
+            <span uk-icon="icon: search; ratio: 0.85"></span>
+            <input id="overview-search-input" class="uk-input uk-form-small" type="text" placeholder="Filter apps by name, command, or path...">
+          </div>
+          <div class="filter-buttons">
+            <button id="filter-btn-all" class="filter-btn active" type="button" data-filter="all">All (<span id="count-all">0</span>)</button>
+            <button id="filter-btn-running" class="filter-btn" type="button" data-filter="running">Running (<span id="count-running">0</span>)</button>
+            <button id="filter-btn-stopped" class="filter-btn" type="button" data-filter="stopped">Stopped (<span id="count-stopped">0</span>)</button>
+          </div>
+        </div>
+
+        <div id="apps-grid" class="apps-grid">
+        </div>
+      </section>
+
+      <!-- VIEW: TASK DETAILS & LOGS -->
+      <section id="view-detail" class="view-container" style="display: none;">
+        <div class="detail-top-nav">
+          <button id="back-to-overview-btn" class="back-btn" type="button" title="Back to All Apps">
+            <span uk-icon="icon: arrow-left; ratio: 0.85"></span>
+            <span>All Apps</span>
+          </button>
+          <div id="detail-nav-title" class="uk-flex uk-flex-middle"></div>
+        </div>
+        <div id="detail-task-container">
+        </div>
+      </section>
     </div>
 
     <!-- MODAL: ADD / EDIT TASK -->

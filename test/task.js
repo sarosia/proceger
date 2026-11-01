@@ -289,6 +289,52 @@ describe('Task', function() {
     error.message.should.equal('Invalid log filename.');
   });
 
+  it('sorts log files by last modified time descending', async () => {
+    const git = createGitStub();
+    const task = new Task({name: 'repo1'}, git, 1000);
+    const now = Date.now();
+    // Set stdout.log mtime older, stderr.log newer
+    await fs.utimes(
+        path.join(repo1Path, 'stdout.log'),
+        new Date(now - 10000),
+        new Date(now - 10000),
+    );
+    await fs.utimes(
+        path.join(repo1Path, 'stderr.log'),
+        new Date(now),
+        new Date(now),
+    );
+    let files = await task.getLogFiles();
+    files[0].should.equal('stderr.log');
+
+    // Reverse mtimes
+    await fs.utimes(
+        path.join(repo1Path, 'stdout.log'),
+        new Date(now),
+        new Date(now),
+    );
+    await fs.utimes(
+        path.join(repo1Path, 'stderr.log'),
+        new Date(now - 10000),
+        new Date(now - 10000),
+    );
+    files = await task.getLogFiles();
+    files[0].should.equal('stdout.log');
+  });
+
+  it('returns merged logs for __all__.log or all.log', async () => {
+    const git = createGitStub();
+    const task = new Task({name: 'repo1'}, git, 1000);
+    const merged = await task.getLogContent('__all__.log');
+    merged.filename.should.equal('All Logs (Merged)');
+    merged.totalLines.should.equal(6);
+    merged.content.should.include('log1');
+
+    const tailMerged = await task.getLogContent('__all__.log', {tail: 2});
+    tailMerged.totalLines.should.equal(6);
+    tailMerged.content.trim().split('\n').length.should.equal(2);
+  });
+
   it('omits log file contents in toJson and returns log filenames',
       async () => {
         const git = createGitStub();
