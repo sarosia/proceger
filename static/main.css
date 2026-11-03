@@ -157,6 +157,16 @@ body {
   border-bottom-color: #1e87f0;
 }
 
+.task-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  min-width: 0;
+  max-width: 100%;
+}
+
 .task-info-list {
   display: grid;
   grid-template-columns: 1fr;
@@ -164,6 +174,7 @@ body {
   margin: 0 0 16px 0;
   padding: 0;
   list-style: none;
+  min-width: 0;
 }
 
 @media (min-width: 640px) {
@@ -481,8 +492,9 @@ body {
 /* App Grid Cards */
 .apps-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
+  width: 100%;
 }
 
 @media (min-width: 640px) {
@@ -502,6 +514,9 @@ body {
   transition: all 0.2s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   position: relative;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .app-card:hover {
@@ -516,6 +531,7 @@ body {
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 12px;
+  min-width: 0;
 }
 
 .app-card-title-wrap {
@@ -524,6 +540,7 @@ body {
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+  flex: 1 1 auto;
 }
 
 .app-card-title {
@@ -532,7 +549,8 @@ body {
   color: #0f172a;
   text-decoration: none;
   cursor: pointer;
-  word-break: break-all;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .app-card-title:hover {
@@ -542,10 +560,12 @@ body {
 .app-card-body {
   flex: 1;
   margin-bottom: 14px;
+  min-width: 0;
 }
 
 .app-card-prop {
   margin-bottom: 8px;
+  min-width: 0;
 }
 
 .app-card-prop-label {
@@ -564,6 +584,7 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
 .app-card-footer {
@@ -574,6 +595,7 @@ body {
   padding-top: 12px;
   border-top: 1px solid #f1f5f9;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .app-card-actions {
@@ -632,6 +654,51 @@ body {
   color: #ffffff;
 }
 
+@media (max-width: 480px) {
+  .search-box-wrapper {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .filter-buttons {
+    display: flex;
+    width: 100%;
+  }
+
+  .filter-btn {
+    flex: 1;
+    text-align: center;
+    padding: 7px 4px;
+    font-size: 12px;
+  }
+
+  .app-card-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .app-card-actions {
+    display: flex;
+    width: 100%;
+    gap: 6px;
+  }
+
+  .app-card-actions .app-card-btn {
+    flex: 1;
+    height: 36px;
+    justify-content: center;
+    font-size: 12px;
+  }
+
+  .app-card-view-btn {
+    width: 100%;
+    height: 36px;
+    justify-content: center;
+    font-size: 12px;
+  }
+}
+
 /* Detail Navigation Bar */
 .detail-top-nav {
   display: flex;
@@ -640,6 +707,8 @@ body {
   margin-bottom: 16px;
   padding-bottom: 12px;
   border-bottom: 1px solid #e2e8f0;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .back-btn {

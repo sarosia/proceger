@@ -747,7 +747,7 @@ function renderOverview(tasks) {
         ]),
         el('div', {
           'class': 'uk-flex uk-flex-between uk-margin-small-top',
-          'style': 'gap: 8px;',
+          'style': 'gap: 8px; flex-wrap: wrap;',
         }, [
           el('div', {}, [
             el('span', {'class': 'app-card-prop-label'}, 'PID: '),
@@ -762,7 +762,10 @@ function renderOverview(tasks) {
             }, formatStartTime(task.startTime)),
           ]),
         ]),
-        el('div', {'class': 'uk-margin-xsmall-top'}, [
+        el('div', {
+          'class': 'uk-margin-xsmall-top',
+          'style': 'overflow: hidden; text-overflow: ellipsis; white-space: nowrap;',
+        }, [
           el('span', {'class': 'app-card-prop-label'}, 'Logs: '),
           el('span', {
             'style': 'font-size: 11.5px; color: #64748b;',
