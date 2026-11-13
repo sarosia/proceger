@@ -26,7 +26,7 @@
     "@sarosia/notabledb": "github:sarosia/notabledb",
     "glob": "^7.1.6",
     "glob-promise": "^3.4.0",
-    "simple-git": "^3.3.0",
+    "simple-git": "^4.0.1",
     "tree-kill": "^1.2.2"
   },
   "devDependencies": {
